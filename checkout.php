@@ -135,7 +135,7 @@ include 'includes/header.php';
             <label for="email">Email (we send your order confirmation here) <span class="required">*</span></label>
             <input type="email" id="email" name="email" value="<?php echo e($email); ?>" required>
 
-            <label for="phone">Mobile number</label>
+            <label for="phone">Mobile number <span class="required">*</span> </label>
             <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" placeholder="e.g. 91234567" maxlength="8" required>
 
             <label for="address">Address <span class="required">*</span></label>
@@ -189,5 +189,122 @@ include 'includes/header.php';
         <a class="text-link" href="cart.php">Edit bag</a>
     </aside>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const nameInput = document.getElementById("name");
+    const phoneInput = document.getElementById("phone");
+    const postalInput = document.getElementById("postal_code");
+    
+    // Card elements
+    const cardNumberInput = document.getElementById("card_number");
+    const cardExpiryInput = document.getElementById("card_expiry");
+    const cardCvvInput = document.getElementById("card_cvv");
+
+    // 1. FULL NAME VALIDATOR (Letters and Spaces only)
+    if (nameInput) {
+        nameInput.addEventListener("input", function (e) {
+            const cleaned = this.value.replace(/[^a-zA-Z\s\-']/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                showLiveWarning(this, "Letters and spaces only (no numbers or symbols)");
+            } else {
+                clearLiveWarning(this);
+            }
+        });
+    }
+
+    // 2. MOBILE NUMBER VALIDATOR
+    if (phoneInput) {
+        phoneInput.addEventListener("input", function (e) {
+            const cleaned = this.value.replace(/[^0-9]/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                showLiveWarning(this, "Numbers only (Singapore mobile format: 6, 8, or 9)");
+            } else {
+                clearLiveWarning(this);
+            }
+        });
+    }
+
+    // 3. POSTAL CODE VALIDATOR
+    if (postalInput) {
+        postalInput.addEventListener("input", function (e) {
+            const cleaned = this.value.replace(/[^0-9]/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                showLiveWarning(this, "Numbers only (6-digit postal code)");
+            } else {
+                clearLiveWarning(this);
+            }
+        });
+    }
+
+    // 4. CARD NUMBER VALIDATOR (Numbers and Spaces only)
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener("input", function (e) {
+            const cleaned = this.value.replace(/[^0-9\s]/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                showLiveWarning(this, "Numbers and spaces only");
+            } else {
+                clearLiveWarning(this);
+            }
+        });
+    }
+
+    // 5. CARD EXPIRY VALIDATOR (Numbers and Slash only)
+    if (cardExpiryInput) {
+        cardExpiryInput.addEventListener("input", function (e) {
+            const cleaned = this.value.replace(/[^0-9\/]/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                showLiveWarning(this, "Format MM/YY only");
+            } else {
+                clearLiveWarning(this);
+            }
+        });
+    }
+
+    // 6. CARD SECURITY CODE/CVV VALIDATOR (Numbers only)
+    if (cardCvvInput) {
+        cardCvvInput.addEventListener("input", function (e) {
+            const cleaned = this.value.replace(/[^0-9]/g, "");
+            if (this.value !== cleaned) {
+                this.value = cleaned;
+                showLiveWarning(this, "3-digit numeric security code only");
+            } else {
+                clearLiveWarning(this);
+            }
+        });
+    }
+});
+
+function showLiveWarning(inputElement, message) {
+    let warning = inputElement.nextElementSibling;
+    
+    if (!warning || !warning.classList.contains("input-warning")) {
+        warning = document.createElement("span");
+        warning.className = "input-warning";
+        warning.style.color = "#cf4421"; // Matches your ReStep orange/red theme
+        warning.style.fontSize = "12px";
+        warning.style.fontWeight = "bold";
+        warning.style.display = "block";
+        warning.style.marginTop = "4px";
+        warning.style.marginBottom = "8px";
+        
+        inputElement.parentNode.insertBefore(warning, inputElement.nextSibling);
+    }
+    warning.textContent = message;
+}
+
+function clearLiveWarning(inputElement) {
+    const warning = inputElement.nextElementSibling;
+    if (warning && warning.classList.contains("input-warning")) {
+        warning.remove();
+    }
+}
+</script>
+
 
 <?php include 'includes/footer.php'; ?>
