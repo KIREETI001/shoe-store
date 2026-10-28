@@ -877,3 +877,8 @@ summary {
         min-width: 560px;
     }
 }
+.required {
+    color: #ff0000; /* Turns the asterisk bright red */
+    margin-left: 2px;
+}
+

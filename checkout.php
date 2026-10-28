@@ -129,19 +129,19 @@ include 'includes/header.php';
     <form id="checkout-form" action="checkout.php" method="post" onsubmit="return checkCheckoutForm();">
         <fieldset>
             <legend>Delivery details</legend>
-            <label for="name">Full name</label>
+            <label for="name">Full name <span class="required">*</span></label>
             <input type="text" id="name" name="name" value="<?php echo e($name); ?>" required>
 
-            <label for="email">Email (we send your order confirmation here)</label>
+            <label for="email">Email (we send your order confirmation here) <span class="required">*</span></label>
             <input type="email" id="email" name="email" value="<?php echo e($email); ?>" required>
 
             <label for="phone">Mobile number</label>
             <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>" placeholder="e.g. 91234567" maxlength="8" required>
 
-            <label for="address">Address</label>
+            <label for="address">Address <span class="required">*</span></label>
             <input type="text" id="address" name="address" value="<?php echo e($address); ?>" placeholder="Block, street, unit number" required>
 
-            <label for="postal_code">Postal code</label>
+            <label for="postal_code">Postal code <span class="required">*</span></label>
             <input type="text" id="postal_code" name="postal_code" value="<?php echo e($postal_code); ?>" placeholder="e.g. 639798" maxlength="6" required>
         </fieldset>
 
@@ -152,15 +152,15 @@ include 'includes/header.php';
 
             <div id="card-fields" <?php if ($payment == 'Cash on delivery') echo 'style="display:none"'; ?>>
                 <p class="hint">This is a demo shop: use a made-up number such as 4111 1111 1111 1111. Card details are never saved.</p>
-                <label for="card_number">Card number</label>
+                <label for="card_number">Card number <span class="required">*</span></label>
                 <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="off">
                 <div class="two-columns">
                     <div>
-                        <label for="card_expiry">Expiry (MM/YY)</label>
+                        <label for="card_expiry">Expiry (MM/YY) <span class="required">*</span></span></label>
                         <input type="text" id="card_expiry" name="card_expiry" placeholder="08/28" maxlength="5" autocomplete="off">
                     </div>
                     <div>
-                        <label for="card_cvv">Security code</label>
+                        <label for="card_cvv">Security code <span class="required">*</span></label>
                         <input type="text" id="card_cvv" name="card_cvv" placeholder="123" maxlength="3" autocomplete="off">
                     </div>
                 </div>

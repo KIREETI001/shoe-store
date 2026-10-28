@@ -4,7 +4,7 @@ $page_title = 'Help & size guide';
 include 'includes/header.php';
 ?>
 
-<h1>Help &amp; size guide</h1>
+<h1>Help &amp; Size Guide</h1>
 
 <div class="faq">
     <h2>Shopping</h2>
@@ -17,22 +17,103 @@ include 'includes/header.php';
         <p>You can browse and fill your bag without one. You sign in or create an account at checkout so we can send you your order and you can find it again later.</p>
     </details>
 
-    <h2 id="size-guide">Size guide</h2>
+    <h2 id="size-guide">Size Guide</h2>
     <p>All our shoes use EU sizes. Measure your foot from heel to longest toe while standing, then find your size below. If you are between sizes, choose the bigger one.</p>
-    <table class="size-table">
-        <tr><th>EU size</th><th>UK size</th><th>US men</th><th>US women</th><th>Foot length (cm)</th></tr>
-        <tr><td>36</td><td>3.5</td><td>4.5</td><td>6</td><td>22.5</td></tr>
-        <tr><td>37</td><td>4</td><td>5</td><td>6.5</td><td>23.0</td></tr>
-        <tr><td>38</td><td>5</td><td>6</td><td>7.5</td><td>24.0</td></tr>
-        <tr><td>39</td><td>6</td><td>7</td><td>8.5</td><td>24.5</td></tr>
-        <tr><td>40</td><td>6.5</td><td>7.5</td><td>9</td><td>25.0</td></tr>
-        <tr><td>41</td><td>7.5</td><td>8.5</td><td>10</td><td>26.0</td></tr>
-        <tr><td>42</td><td>8</td><td>9</td><td>10.5</td><td>26.5</td></tr>
-        <tr><td>43</td><td>9</td><td>10</td><td>11.5</td><td>27.5</td></tr>
-        <tr><td>44</td><td>9.5</td><td>10.5</td><td>12</td><td>28.0</td></tr>
-        <tr><td>45</td><td>10.5</td><td>11.5</td><td>13</td><td>29.0</td></tr>
-        <tr><td>46</td><td>11</td><td>12</td><td>13.5</td><td>29.5</td></tr>
-    </table>
+                <style>
+        /* Modern table container with a safe max-width */
+        .size-table-container {
+            margin: 30px auto; /* Centers the container on the page */
+            max-width: 650px; /* Prevents the table from stretching too wide */
+            border: 1px solid #dfdfd9;
+            border-radius: 8px;
+            overflow: hidden; /* Rounds the outer table borders */
+            background: #fff;
+        }
+
+        .size-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .size-table th {
+            background-color: #252622; /* Matches your header dark tone */
+            color: #ffffff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1.2px;
+            padding: 16px 14px;
+            text-align: center; /* Center column headers */
+            /* Subtle vertical lines in the header */
+            border-right: 1px solid #51524b; 
+        }
+
+        /* Remove the vertical line on the last header cell */
+        .size-table th:last-child {
+            border-right: none;
+        }
+
+        .size-table td {
+            padding: 14px 14px;
+            border-bottom: 1px solid #dfdfd9;
+            text-align: center; /* Center cell data */
+            /* Vertical lines in the body cells */
+            border-right: 1px solid #dfdfd9; 
+            color: #44433f;
+        }
+
+        /* Remove the vertical line on the last column cells */
+        .size-table td:last-child {
+            border-right: none;
+        }
+
+        /* Highlight row on mouse hover */
+        .size-table tbody tr:hover {
+            background-color: #f0efe7;
+            cursor: pointer;
+        }
+
+        /* Bold the EU size column so it stands out */
+        .size-table td:first-child {
+            font-weight: bold;
+            color: #252622;
+        }
+
+        /* Remove border on the final row */
+        .size-table tbody tr:last-of-type td {
+            border-bottom: none;
+        }
+    </style>
+
+    <div class="size-table-container">
+        <table class="size-table">
+            <thead>
+                <tr>
+                    <th>EU size</th>
+                    <th>UK size</th>
+                    <th>US men</th>
+                    <th>US women</th>
+                    <th>Foot length (cm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>36</td><td>3.5</td><td>4.5</td><td>6</td><td>22.5</td></tr>
+                <tr><td>37</td><td>4</td><td>5</td><td>6.5</td><td>23.0</td></tr>
+                <tr><td>38</td><td>5</td><td>6</td><td>7.5</td><td>24.0</td></tr>
+                <tr><td>39</td><td>6</td><td>7</td><td>8.5</td><td>24.5</td></tr>
+                <tr><td>40</td><td>6.5</td><td>7.5</td><td>9</td><td>25.0</td></tr>
+                <tr><td>41</td><td>7.5</td><td>8.5</td><td>10</td><td>26.0</td></tr>
+                <tr><td>42</td><td>8</td><td>9</td><td>10.5</td><td>26.5</td></tr>
+                <tr><td>43</td><td>9</td><td>10</td><td>11.5</td><td>27.5</td></tr>
+                <tr><td>44</td><td>9.5</td><td>10.5</td><td>12</td><td>28.0</td></tr>
+                <tr><td>45</td><td>10.5</td><td>11.5</td><td>13</td><td>29.0</td></tr>
+                <tr><td>46</td><td>11</td><td>12</td><td>13.5</td><td>29.5</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+
 
     <h2 id="delivery">Orders, delivery &amp; returns</h2>
     <details>
