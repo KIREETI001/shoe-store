@@ -31,6 +31,29 @@ if (!$order) {
 $errors = array();
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
+if (isset($_POST['remove_item_id'])) {
+    $remove_item_id = $_POST['remove_item_id'];
+
+    if (!is_string($remove_item_id) || !preg_match('/^[1-9][0-9]*$/', $remove_item_id)) {
+        $errors[] = 'Please choose a valid order item to remove.';
+    } else {
+        $remove_item_id = (int) $remove_item_id;
+        $remove_result = $db->query(
+            "SELECT id
+             FROM order_items
+             WHERE id = $remove_item_id
+                 AND order_id = $order_id"
+        );
+
+        if (!$remove_result || !$remove_result->fetch_assoc()) {
+            $errors[] = 'That item could not be found in this order.';
+        } else {
+            $_POST['remove'] = array($remove_item_id => '1');
+            $action = 'save';
+        }
+    }
+}
+
 // Handle the buttons. Only a Pending order can be changed.
 if ($order['status'] == 'Pending') {
     if ($action == 'cancel') {
@@ -53,7 +76,7 @@ if ($order['status'] == 'Pending') {
         }
     }
 
-    if ($action == 'save' || $action == 'confirm') {
+    if (($action == 'save' || $action == 'confirm') && count($errors) == 0) {
         $result = save_order_changes($db, $order_id, $_POST);
         $errors = $result['errors'];
         $changed = $result['changed'];
@@ -208,51 +231,81 @@ include 'includes/header.php';
 
 <form id="order-form" action="order.php?id=<?php echo $order_id; ?>" method="post">
     <div class="order-items">
-        <?php while ($items && ($item = $items->fetch_assoc())) { ?>
-            <div class="order-item">
-                <img src="assets/images/<?php echo e($item['image']); ?>" alt="<?php echo e($item['product_name']); ?>">
-                <div>
-                    <h3>
-                        <a href="product.php?id=<?php echo $item['product_id']; ?>">
-                            <?php echo e($item['product_name']); ?>
-                        </a>
-                    </h3>
-                    <p class="hint">
-                        Colour: <?php echo e($item['colour']); ?> &middot; <?php echo money($item['price']); ?> each
-                    </p>
-
+        <table class="order-items-table">
+            <thead>
+                <tr>
+                    <th scope="col">Shoe</th>
+                    <th scope="col">Size (EU)</th>
+                    <th class="order-quantity-cell" scope="col">Quantity</th>
+                    <th class="order-price-cell" scope="col">Unit price</th>
+                    <th class="order-price-cell" scope="col">Subtotal</th>
                     <?php if ($can_edit) { ?>
-                        <label>Size (EU)
-                            <select name="size[<?php echo $item['id']; ?>]">
-                                <?php foreach (get_sizes($db, $item['product_id']) as $s) { ?>
-                                    <?php
-                                    $available = $s['stock']
-                                        + (isset($held_by_size[$s['id']]) ? $held_by_size[$s['id']] : 0);
-                                    ?>
-                                    <option value="<?php echo $s['id']; ?>"
-                                        <?php if ($s['id'] == $item['size_id']) echo 'selected'; ?>
-                                        <?php if ($available < 1) echo 'disabled'; ?>>
-                                        <?php echo $s['size']; ?><?php if ($available < 1) echo ' (sold out)'; ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </label>
-                        <label>Quantity
-                            <input id="order-quantity-<?php echo $item['id']; ?>" class="qty" type="number"
-                                name="quantity[<?php echo $item['id']; ?>]" value="<?php echo $item['quantity']; ?>"
-                                min="1" max="10" step="1" required>
-                        </label>
-                        <label class="inline">
-                            <input id="order-remove-<?php echo $item['id']; ?>" type="checkbox"
-                                name="remove[<?php echo $item['id']; ?>]" value="1"> Remove this shoe
-                        </label>
-                    <?php } else { ?>
-                        <p>Size EU <?php echo $item['size']; ?> &times; <?php echo $item['quantity']; ?></p>
+                        <th class="order-remove-cell" scope="col">Remove</th>
                     <?php } ?>
-                    <p><strong><?php echo money($item['price'] * $item['quantity']); ?></strong></p>
-                </div>
-            </div>
-        <?php } ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($items && ($item = $items->fetch_assoc())) { ?>
+                    <tr>
+                        <td>
+                            <div class="order-product">
+                                <img src="assets/images/<?php echo e($item['image']); ?>"
+                                    alt="<?php echo e($item['product_name']); ?>">
+                                <div>
+                                    <a href="product.php?id=<?php echo $item['product_id']; ?>">
+                                        <strong><?php echo e($item['product_name']); ?></strong>
+                                    </a>
+                                    <div class="hint"><?php echo e($item['colour']); ?></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <?php if ($can_edit) { ?>
+                                <select name="size[<?php echo $item['id']; ?>]"
+                                    aria-label="Size for <?php echo e($item['product_name']); ?>">
+                                    <?php foreach (get_sizes($db, $item['product_id']) as $s) { ?>
+                                        <?php
+                                        $available = $s['stock']
+                                            + (isset($held_by_size[$s['id']]) ? $held_by_size[$s['id']] : 0);
+                                        ?>
+                                        <option value="<?php echo $s['id']; ?>"
+                                            <?php if ($s['id'] == $item['size_id']) echo 'selected'; ?>
+                                            <?php if ($available < 1) echo 'disabled'; ?>>
+                                            <?php echo $s['size']; ?><?php if ($available < 1) echo ' (sold out)'; ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            <?php } else { ?>
+                                <?php echo $item['size']; ?>
+                            <?php } ?>
+                        </td>
+                        <td class="order-quantity-cell">
+                            <?php if ($can_edit) { ?>
+                                <input id="order-quantity-<?php echo $item['id']; ?>" class="qty" type="number"
+                                    name="quantity[<?php echo $item['id']; ?>]" value="<?php echo $item['quantity']; ?>"
+                                    min="1" max="10" step="1" required
+                                    aria-label="Quantity for <?php echo e($item['product_name']); ?>">
+                            <?php } else { ?>
+                                <?php echo $item['quantity']; ?>
+                            <?php } ?>
+                        </td>
+                        <td class="order-price-cell"><?php echo money($item['price']); ?></td>
+                        <td class="order-price-cell"><strong><?php echo money($item['price'] * $item['quantity']); ?></strong></td>
+                        <?php if ($can_edit) { ?>
+                        <td class="order-remove-cell">
+                            <button type="submit"
+                                    name="remove_item_id"
+                                    value="<?php echo $item['id']; ?>"
+                                    class="order-remove-button"
+                                    onclick="return confirm('Remove <?php echo e($item['product_name']); ?> from your order?');">
+                                ✕ Remove
+                            </button>
+                        </td>
+                    <?php } ?>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
     </div>
 
     <div class="cart-layout">
