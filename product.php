@@ -42,7 +42,7 @@ include 'includes/header.php';
         <p class="product-price"><?php echo money($product['price']); ?></p>
         <p><?php echo e($product['description']); ?></p>
 
-        <form action="cart.php" method="post" onsubmit="return checkProductForm();">
+        <form id="product-form" action="cart.php" method="post">
             <input type="hidden" name="action" value="add">
             <input type="hidden" id="unit-price" value="<?php echo $product['price']; ?>">
 
@@ -66,7 +66,7 @@ include 'includes/header.php';
 
             <div class="quantity-row">
                 <label for="quantity">Quantity</label>
-                <input type="number" id="quantity" name="quantity" value="1" min="1" max="10" oninput="updateSubtotal()">
+                <input type="number" id="quantity" name="quantity" value="1" min="1" max="10" step="1" required oninput="updateSubtotal()">
                 <span>Subtotal: <strong id="subtotal"><?php echo money($product['price']); ?></strong></span>
             </div>
 

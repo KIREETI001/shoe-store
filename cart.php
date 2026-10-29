@@ -7,11 +7,25 @@ $action = isset($_POST['action']) ? $_POST['action'] : '';
 
 // 1. Add a shoe from the product page
 if ($action == 'add') {
-    $size_id = isset($_POST['size_id']) ? (int) $_POST['size_id'] : 0;
-    $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 0;
+    $size_id = isset($_POST['size_id']) ? $_POST['size_id'] : '';
+    $quantity = isset($_POST['quantity']) ? $_POST['quantity'] : '';
 
-    $row = $db->query("SELECT s.stock, s.size, s.product_id, p.name FROM product_sizes s
-                       JOIN products p ON s.product_id = p.id WHERE s.id = $size_id")->fetch_assoc();
+    if (!preg_match('/^[0-9]+$/', $size_id) || !is_valid_quantity($quantity)) {
+        set_message('Please choose a size and a whole-number quantity from 1 to 10. Your bag was not changed.');
+        header('Location: products.php');
+        exit;
+    }
+
+    $size_id = (int) $size_id;
+    $quantity = (int) $quantity;
+
+    $result = $db->query(
+        "SELECT s.stock, s.size, s.product_id, p.name
+         FROM product_sizes s
+         JOIN products p ON s.product_id = p.id
+         WHERE s.id = $size_id"
+    );
+    $row = $result ? $result->fetch_assoc() : false;
 
     if (!$row) {
         set_message('Please choose a size before adding to your bag.');
@@ -23,13 +37,17 @@ if ($action == 'add') {
     $already = isset($_SESSION['cart'][$size_id]) ? $_SESSION['cart'][$size_id] : 0;
     $new_quantity = $already + $quantity;
 
-    if ($quantity < 1 || $quantity > 10) {
-        set_message('Please choose a quantity from 1 to 10.');
+    if ($new_quantity > 10) {
+        set_message('Your bag can contain at most 10 pairs of the same shoe and size. Your bag was not changed.');
         header('Location: product.php?id=' . $row['product_id']);
         exit;
     }
+
     if ($new_quantity > $row['stock']) {
-        set_message('Sorry, only ' . $row['stock'] . ' pairs of ' . $row['name'] . ' in EU ' . $row['size'] . ' are left.');
+        set_message(
+            'Sorry, only ' . $row['stock'] . ' pairs of ' . $row['name']
+            . ' in EU ' . $row['size'] . ' are left.'
+        );
         header('Location: product.php?id=' . $row['product_id']);
         exit;
     }
@@ -46,36 +64,59 @@ if ($action == 'update') {
     $problems = array();
 
     foreach ($_SESSION['cart'] as $old_size_id => $old_quantity) {
-        $new_size_id = isset($_POST['size'][$old_size_id]) ? (int) $_POST['size'][$old_size_id] : $old_size_id;
-        $quantity = isset($_POST['quantity'][$old_size_id]) ? (int) $_POST['quantity'][$old_size_id] : $old_quantity;
+        $new_size_id = isset($_POST['size'][$old_size_id]) ? $_POST['size'][$old_size_id] : '';
+        $quantity = isset($_POST['quantity'][$old_size_id]) ? $_POST['quantity'][$old_size_id] : '';
+
+        if (!preg_match('/^[0-9]+$/', $new_size_id) || !is_valid_quantity($quantity)) {
+            $problems[] = 'Please choose a valid size and a whole-number quantity from 1 to 10 for every shoe.';
+            continue;
+        }
+
+        $old_size_id = (int) $old_size_id;
+        $new_size_id = (int) $new_size_id;
+        $quantity = (int) $quantity;
 
         // Make sure the new size belongs to the same shoe
-        $old_row = $db->query("SELECT product_id FROM product_sizes WHERE id = $old_size_id")->fetch_assoc();
-        $new_row = $db->query("SELECT s.product_id, s.stock, s.size, p.name FROM product_sizes s
-                               JOIN products p ON s.product_id = p.id WHERE s.id = $new_size_id")->fetch_assoc();
+        $old_result = $db->query(
+            "SELECT product_id
+             FROM product_sizes
+             WHERE id = $old_size_id"
+        );
+        $new_result = $db->query(
+            "SELECT s.product_id, s.stock, s.size, p.name
+             FROM product_sizes s
+             JOIN products p ON s.product_id = p.id
+             WHERE s.id = $new_size_id"
+        );
+        $old_row = $old_result ? $old_result->fetch_assoc() : false;
+        $new_row = $new_result ? $new_result->fetch_assoc() : false;
+
         if (!$old_row || !$new_row || $old_row['product_id'] != $new_row['product_id']) {
+            $problems[] = 'A chosen size is no longer available for that shoe.';
             continue;
         }
 
         if (isset($new_cart[$new_size_id])) {
             $quantity += $new_cart[$new_size_id];   // same size chosen twice: join them
         }
-        if ($quantity < 1) {
-            $quantity = 1;
+
+        if ($quantity > 10) {
+            $problems[] = 'Choose at most 10 pairs of ' . $new_row['name']
+                . ' in EU ' . $new_row['size'] . ' across the bag.';
         }
+
         if ($quantity > $new_row['stock']) {
-            $quantity = $new_row['stock'];
-            $problems[] = 'Only ' . $new_row['stock'] . ' left of ' . $new_row['name'] . ' in EU ' . $new_row['size'] . '.';
+            $problems[] = 'Only ' . $new_row['stock'] . ' left of ' . $new_row['name']
+                . ' in EU ' . $new_row['size'] . '.';
         }
-        if ($quantity > 0) {
-            $new_cart[$new_size_id] = $quantity;
-        }
+
+        $new_cart[$new_size_id] = $quantity;
     }
 
-    $_SESSION['cart'] = $new_cart;
     if (count($problems) > 0) {
-        set_message(implode(' ', $problems) . ' We have changed the quantity for you.');
+        set_message(implode(' ', $problems) . ' Your bag was not changed.');
     } else {
+        $_SESSION['cart'] = $new_cart;
         set_message('Your bag has been updated.');
     }
     header('Location: cart.php');
@@ -89,6 +130,7 @@ if (isset($_GET['remove'])) {
     header('Location: cart.php');
     exit;
 }
+
 if (isset($_GET['empty'])) {
     $_SESSION['cart'] = array();
     header('Location: cart.php');
@@ -97,6 +139,7 @@ if (isset($_GET['empty'])) {
 
 $items = get_cart_items($db);
 $total = 0;
+
 foreach ($items as $item) {
     $total += $item['subtotal'];
 }
@@ -116,7 +159,7 @@ include 'includes/header.php';
 <?php } else { ?>
 
 <div class="cart-layout">
-    <form class="cart-table" action="cart.php" method="post">
+    <form id="cart-form" class="cart-table" action="cart.php" method="post">
         <input type="hidden" name="action" value="update">
         <table>
             <tr>
@@ -134,12 +177,14 @@ include 'includes/header.php';
                         <img src="assets/images/<?php echo e($item['image']); ?>" alt="">
                     </a>
                     <div>
-                        <a href="product.php?id=<?php echo $item['product_id']; ?>"><strong><?php echo e($item['name']); ?></strong></a><br>
+                        <a href="product.php?id=<?php echo $item['product_id']; ?>">
+                            <strong><?php echo e($item['name']); ?></strong>
+                        </a><br>
                         <span class="hint"><?php echo e($item['colour']); ?></span>
                     </div>
                 </td>
                 <td>
-                    <select name="size[<?php echo $item['size_id']; ?>]" aria-label="Size" onchange="this.form.submit()">
+                    <select name="size[<?php echo $item['size_id']; ?>]" aria-label="Size">
                         <?php foreach (get_sizes($db, $item['product_id']) as $s) { ?>
                             <option value="<?php echo $s['id']; ?>"
                                 <?php if ($s['id'] == $item['size_id']) echo 'selected'; ?>
@@ -150,22 +195,25 @@ include 'includes/header.php';
                     </select>
                 </td>
                 <td>
-                    <input class="qty" type="number" name="quantity[<?php echo $item['size_id']; ?>]"
-                           value="<?php echo $item['quantity']; ?>" min="1" max="10" aria-label="Quantity"
-                           onchange="this.form.submit()">
+                    <input id="cart-quantity-<?php echo $item['size_id']; ?>" class="qty" type="number"
+                        name="quantity[<?php echo $item['size_id']; ?>]" value="<?php echo $item['quantity']; ?>"
+                        min="1" max="10" step="1" required aria-label="Quantity">
                 </td>
                 <td><?php echo money($item['price']); ?></td>
                 <td><strong><?php echo money($item['subtotal']); ?></strong></td>
                 <td>
                     <a class="remove" href="cart.php?remove=<?php echo $item['size_id']; ?>"
-                       onclick="return confirm('Remove <?php echo e(addslashes($item['name'])); ?> from your bag?');">Remove</a>
+                        onclick="return confirm('Remove <?php
+                            echo e(addslashes($item['name']));
+                        ?> from your bag?');">Remove</a>
                 </td>
             </tr>
             <?php } ?>
         </table>
         <p class="cart-buttons">
             <button class="button secondary" type="submit">Update bag</button>
-            <a class="text-link" href="cart.php?empty=1" onclick="return confirm('Remove everything from your bag?');">Empty bag</a>
+            <a class="text-link" href="cart.php?empty=1"
+                onclick="return confirm('Remove everything from your bag?');">Empty bag</a>
         </p>
     </form>
 

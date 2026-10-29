@@ -1,0 +1,243 @@
+ReStep product image attribution
+
+Source notes for the project report. Product images are served from local JPEG files; these source references are not website navigation.
+
+Original: 001_sports_road-running-mesh_white-and-cobalt.png
+Local JPEG: 001_sports_road-running-mesh_white-and-cobalt.jpg
+Source: https://drive.google.com/file/d/1Eu7b8hD4ftJjcf_AfvqTWH7L6SFa5qQP/view?usp=drivesdk
+
+Original: 002_sports_trail-running-lugged_forest-green-and-orange.png
+Local JPEG: 002_sports_trail-running-lugged_forest-green-and-orange.jpg
+Source: https://drive.google.com/file/d/1aX6Bw8axub9c9oEZxGCfzmELnDrCQv_g/view?usp=drivesdk
+
+Original: 003_sports_marathon-racing_coral-and-cream.png
+Local JPEG: 003_sports_marathon-racing_coral-and-cream.jpg
+Source: https://drive.google.com/file/d/1OgrZirInRlByoq-hbcI48ohBiKFHoo0Q/view?usp=drivesdk
+
+Original: 004_sports_track-sprint-spikes_yellow-and-black.png
+Local JPEG: 004_sports_track-sprint-spikes_yellow-and-black.jpg
+Source: https://drive.google.com/file/d/12yc_hkhaJVAE3IjXaxI7HyPM4Mtf4xbz/view?usp=drivesdk
+
+Original: 005_sports_cross-training_charcoal-and-lime.png
+Local JPEG: 005_sports_cross-training_charcoal-and-lime.jpg
+Source: https://drive.google.com/file/d/1JPRg_Jn7A3xqESbApVSu2x1reeE-RYDv/view?usp=drivesdk
+
+Original: 006_sports_basketball-high-top_royal-blue-and-white.png
+Local JPEG: 006_sports_basketball-high-top_royal-blue-and-white.jpg
+Source: https://drive.google.com/file/d/1Fsycb9XIsekZtTgBNpd4OSpWYuWtfClQ/view?usp=drivesdk
+
+Original: 007_sports_tennis-hard-court_white-and-navy.png
+Local JPEG: 007_sports_tennis-hard-court_white-and-navy.jpg
+Source: https://drive.google.com/file/d/1i26xTnibVBimskPajvjlhjq-Hg_kXa63/view?usp=drivesdk
+
+Original: 008_sports_football-firm-ground_burgundy-and-gold.png
+Local JPEG: 008_sports_football-firm-ground_burgundy-and-gold.jpg
+Source: https://drive.google.com/file/d/1M5k97vsEJuSsyCHK5nOoF1ljGXN2q74Q/view?usp=drivesdk
+
+Original: 009_sports_indoor-futsal_teal-and-gum.png
+Local JPEG: 009_sports_indoor-futsal_teal-and-gum.jpg
+Source: https://drive.google.com/file/d/14hf69ZLnJNU3sXpQLsUAVMUcK1k68-6v/view?usp=drivesdk
+
+Original: 010_sports_badminton-court_purple-and-silver.png
+Local JPEG: 010_sports_badminton-court_purple-and-silver.jpg
+Source: https://drive.google.com/file/d/1RpKAzqnyHoVOSD6tUv-FCZ8Eq4nvheOW/view?usp=drivesdk
+
+Original: 011_sports_volleyball-court_red-and-white.png
+Local JPEG: 011_sports_volleyball-court_red-and-white.jpg
+Source: https://drive.google.com/file/d/1nWuq81ITUi72xorbkKWHFQn1bVU2UD9R/view?usp=drivesdk
+
+Original: 012_sports_handball-court_orange-and-charcoal.png
+Local JPEG: 012_sports_handball-court_orange-and-charcoal.jpg
+Source: https://drive.google.com/file/d/1WswQKAzkNBtjlPznOH8JKpHD6avACMYD/view?usp=drivesdk
+
+Original: 013_sports_squash-court_ice-blue-and-navy.png
+Local JPEG: 013_sports_squash-court_ice-blue-and-navy.jpg
+Source: https://drive.google.com/file/d/1Ckh3rt8L-nVqQhm_MiZpmWu-FYwWH_8A/view?usp=drivesdk
+
+Original: 014_sports_weightlifting-strap_black-and-red.png
+Local JPEG: 014_sports_weightlifting-strap_black-and-red.jpg
+Source: https://drive.google.com/file/d/1u3yHiM9YDKkxEnHj2VA8lY4nGZrZsnA3/view?usp=drivesdk
+
+Original: 015_sports_boxing-high-top_black-and-gold.png
+Local JPEG: 015_sports_boxing-high-top_black-and-gold.jpg
+Source: https://drive.google.com/file/d/1s30g9KiM68qHigYgjZxra2BOHN5sIsVY/view?usp=drivesdk
+
+Original: 016_sports_wrestling-ankle_navy-and-silver.png
+Local JPEG: 016_sports_wrestling-ankle_navy-and-silver.jpg
+Source: https://drive.google.com/file/d/1vJTUJS-hozF-68_YLN-mle5xNrw_etdy/view?usp=drivesdk
+
+Original: 017_sports_cycling-road_white-and-black.png
+Local JPEG: 017_sports_cycling-road_white-and-black.jpg
+Source: https://drive.google.com/file/d/1MVWjCPTPnQm6WRSV2MYfZp-pJK13MQqj/view?usp=drivesdk
+
+Original: 018_sports_cycling-mountain_olive-and-black.png
+Local JPEG: 018_sports_cycling-mountain_olive-and-black.jpg
+Source: https://drive.google.com/file/d/1UHdmZayWQ6zhRbHZ_zMy8eeR5pttq5TV/view?usp=drivesdk
+
+Original: 019_sports_golf-spikeless_cream-and-green.png
+Local JPEG: 019_sports_golf-spikeless_cream-and-green.jpg
+Source: https://drive.google.com/file/d/1VVjFqbxR2_qYGtLAA4o11fMCciYPf0O_/view?usp=drivesdk
+
+Original: 020_sports_hiking-low_sand-and-brown.png
+Local JPEG: 020_sports_hiking-low_sand-and-brown.jpg
+Source: https://drive.google.com/file/d/18GBWgOl0xK9eUY3b0RifBXco0W-jROdO/view?usp=drivesdk
+
+Original: 021_sports_approach-climbing_slate-and-yellow.png
+Local JPEG: 021_sports_approach-climbing_slate-and-yellow.jpg
+Source: https://drive.google.com/file/d/1RIt5PJqXE3lrRQ3o7H5EtIwrAfad_3Yc/view?usp=drivesdk
+
+Original: 022_sports_climbing-bouldering_black-and-turquoise.png
+Local JPEG: 022_sports_climbing-bouldering_black-and-turquoise.jpg
+Source: https://drive.google.com/file/d/1qZjWETPQWjpUZS1dAkzOwKVXIbesJ5h2/view?usp=drivesdk
+
+Original: 023_sports_water-drainage_aqua-and-gray.png
+Local JPEG: 023_sports_water-drainage_aqua-and-gray.jpg
+Source: https://drive.google.com/file/d/1x5Ca3voGCAxuqGt60zeznaykOjy0xaZo/view?usp=drivesdk
+
+Original: 024_sports_race-walking_silver-and-cyan.png
+Local JPEG: 024_sports_race-walking_silver-and-cyan.jpg
+Source: https://drive.google.com/file/d/1ngVZiHN7hv3QFwm7Jw4ixalu26Cni6wN/view?usp=drivesdk
+
+Original: 025_sports_stability-running_navy-and-mint.png
+Local JPEG: 025_sports_stability-running_navy-and-mint.jpg
+Source: https://drive.google.com/file/d/1aPOdPxroX5Bhujfns_vpDFPnMRA7KY6k/view?usp=drivesdk
+
+Original: 026_sports_minimalist-running_black-and-stone.png
+Local JPEG: 026_sports_minimalist-running_black-and-stone.jpg
+Source: https://drive.google.com/file/d/13IKsVL19ldfhRccbD4gHWK1BEsAlg3J7/view?usp=drivesdk
+
+Original: 027_sports_obstacle-racing_rust-and-black.png
+Local JPEG: 027_sports_obstacle-racing_rust-and-black.jpg
+Source: https://drive.google.com/file/d/1X5OiwBb73pxY-WKLigQem89oEy4L1GJK/view?usp=drivesdk
+
+Original: 028_sports_cricket-bowling_white-and-red.png
+Local JPEG: 028_sports_cricket-bowling_white-and-red.jpg
+Source: https://drive.google.com/file/d/1D0JWUH_HO7pODjll3OHVYDT_prJDGUjU/view?usp=drivesdk
+
+Original: 029_sports_rugby-studded_black-and-electric-blue.png
+Local JPEG: 029_sports_rugby-studded_black-and-electric-blue.jpg
+Source: https://drive.google.com/file/d/1zobllGBofJ8zv5v1ZMjJg7yqglkaTmkR/view?usp=drivesdk
+
+Original: 030_sports_skate-performance_chocolate-and-gum.png
+Local JPEG: 030_sports_skate-performance_chocolate-and-gum.jpg
+Source: https://drive.google.com/file/d/1yrkvCfYvnSvLddzEDB4oqLmvwcJW0J25/view?usp=drivesdk
+
+Original: 031_lifestyle_minimal-leather-low-top_white.png
+Local JPEG: 031_lifestyle_minimal-leather-low-top_white.jpg
+Source: https://drive.google.com/file/d/1ptrH4g3lBFLcQnCLxIs1QWwk1CsbCQwp/view?usp=drivesdk
+
+Original: 032_lifestyle_suede-terrace_tan-and-cream.png
+Local JPEG: 032_lifestyle_suede-terrace_tan-and-cream.jpg
+Source: https://drive.google.com/file/d/1EZr97OodXo1cUDNley4ji2GsULyQAtTe/view?usp=drivesdk
+
+Original: 033_lifestyle_canvas-high-top_black-and-ivory.png
+Local JPEG: 033_lifestyle_canvas-high-top_black-and-ivory.jpg
+Source: https://drive.google.com/file/d/1n19DBvCmWf9LjQF4rBecPaRVjqp7m9px/view?usp=drivesdk
+
+Original: 034_lifestyle_canvas-slip-on_checkerboard-black-and-white.png
+Local JPEG: 034_lifestyle_canvas-slip-on_checkerboard-black-and-white.jpg
+Source: https://drive.google.com/file/d/10qmvy-51pxc87F9vyISswwqU5wI4u0lo/view?usp=drivesdk
+
+Original: 035_lifestyle_penny-loafer_oxblood.png
+Local JPEG: 035_lifestyle_penny-loafer_oxblood.jpg
+Source: https://drive.google.com/file/d/1c0lyjWf-zee6R7IAuNDb-K2asbg4dmBa/view?usp=drivesdk
+
+Original: 036_lifestyle_tassel-loafer_chocolate-brown.png
+Local JPEG: 036_lifestyle_tassel-loafer_chocolate-brown.jpg
+Source: https://drive.google.com/file/d/1EO3R2Y5uLzuG4UxgKKsWmhSw19L-IGZO/view?usp=drivesdk
+
+Original: 037_lifestyle_horsebit-loafer_black.png
+Local JPEG: 037_lifestyle_horsebit-loafer_black.jpg
+Source: https://drive.google.com/file/d/1kh063UVQ7qHyfbboI9qyBN_9nC8ZSLCp/view?usp=drivesdk
+
+Original: 038_lifestyle_derby-plain-toe_chestnut.png
+Local JPEG: 038_lifestyle_derby-plain-toe_chestnut.jpg
+Source: https://drive.google.com/file/d/14gc88Sa3BEyJcsa-hgjBAV4wrnI27ftb/view?usp=drivesdk
+
+Original: 039_lifestyle_oxford-cap-toe_black.png
+Local JPEG: 039_lifestyle_oxford-cap-toe_black.jpg
+Source: https://drive.google.com/file/d/1jJWfLKaa3Hnw0Bysw9PGZ8kKSSfXqeFN/view?usp=drivesdk
+
+Original: 040_lifestyle_brogue-wingtip_cognac.png
+Local JPEG: 040_lifestyle_brogue-wingtip_cognac.jpg
+Source: https://drive.google.com/file/d/1Zq7QKoeNwNfTbmfDO9loFfD5PPIukrCw/view?usp=drivesdk
+
+Original: 041_lifestyle_monk-double-strap_dark-brown.png
+Local JPEG: 041_lifestyle_monk-double-strap_dark-brown.jpg
+Source: https://drive.google.com/file/d/1_AtoGS-23DU9Sn-XdAmodY4fzbdaPwrO/view?usp=drivesdk
+
+Original: 042_lifestyle_chelsea-boot_sand.png
+Local JPEG: 042_lifestyle_chelsea-boot_sand.jpg
+Source: https://drive.google.com/file/d/1MUWmIcE66-ii2huWSCkljylCEH5NW_er/view?usp=drivesdk
+
+Original: 043_lifestyle_chukka-boot_taupe.png
+Local JPEG: 043_lifestyle_chukka-boot_taupe.jpg
+Source: https://drive.google.com/file/d/1NqPaLyd-nvCQgsc0fjXk7axTH26ztcFa/view?usp=drivesdk
+
+Original: 044_lifestyle_desert-boot_beige.png
+Local JPEG: 044_lifestyle_desert-boot_beige.jpg
+Source: https://drive.google.com/file/d/1zMKnXM92bm84uBxigg5SblWf7JcyTgfL/view?usp=drivesdk
+
+Original: 045_lifestyle_moccasin_caramel.png
+Local JPEG: 045_lifestyle_moccasin_caramel.jpg
+Source: https://drive.google.com/file/d/1ZrYGayEPrdvFvKxU8z6T7jnstFAKRn9Q/view?usp=drivesdk
+
+Original: 046_lifestyle_boat-shoe_navy-and-tan.png
+Local JPEG: 046_lifestyle_boat-shoe_navy-and-tan.jpg
+Source: https://drive.google.com/file/d/1RNsopMo6_AG-0LLK0Uz0KbIZg1RajWjb/view?usp=drivesdk
+
+Original: 047_lifestyle_espadrille_natural-linen.png
+Local JPEG: 047_lifestyle_espadrille_natural-linen.jpg
+Source: https://drive.google.com/file/d/1p-rG2fa01oeIp6vbxdnBVsvMePXoic-M/view?usp=drivesdk
+
+Original: 048_lifestyle_driving-shoe_burnt-orange.png
+Local JPEG: 048_lifestyle_driving-shoe_burnt-orange.jpg
+Source: https://drive.google.com/file/d/1L9TQ2NRfvYbytNokmH6Cj6MIZBEp25Lq/view?usp=drivesdk
+
+Original: 049_lifestyle_woven-leather-slip-on_dark-brown.png
+Local JPEG: 049_lifestyle_woven-leather-slip-on_dark-brown.jpg
+Source: https://drive.google.com/file/d/1P58UOiHWyWXhAfNPjWSG93_eTPHJetzD/view?usp=drivesdk
+
+Original: 050_lifestyle_mary-jane_black-and-cream.png
+Local JPEG: 050_lifestyle_mary-jane_black-and-cream.jpg
+Source: https://drive.google.com/file/d/1GZtJbPClbgzFjuWg7bB4hMzXeJ6vLKJ6/view?usp=drivesdk
+
+Original: 051_lifestyle_ballet-flat_blush-pink.png
+Local JPEG: 051_lifestyle_ballet-flat_blush-pink.jpg
+Source: https://drive.google.com/file/d/19lnkeM9XkuT5PsD7feoOSoky3QqjtcUG/view?usp=drivesdk
+
+Original: 052_lifestyle_slingback-flat_ivory-and-black.png
+Local JPEG: 052_lifestyle_slingback-flat_ivory-and-black.jpg
+Source: https://drive.google.com/file/d/1g8-Fj0S2Sua2e3hGv7bZHZ0sbw5Xuk0E/view?usp=drivesdk
+
+Original: 053_lifestyle_mule-closed-toe_sage-green.png
+Local JPEG: 053_lifestyle_mule-closed-toe_sage-green.jpg
+Source: https://drive.google.com/file/d/1qWek4cwhdH6HHjXpAqJpTS3YYff5XeMz/view?usp=drivesdk
+
+Original: 054_lifestyle_clog-suede_camel.png
+Local JPEG: 054_lifestyle_clog-suede_camel.jpg
+Source: https://drive.google.com/file/d/1nj2hGBGC5z2MPfDjdp0q_wRiOSneS9V3/view?usp=drivesdk
+
+Original: 055_lifestyle_platform-sneaker_lilac-and-white.png
+Local JPEG: 055_lifestyle_platform-sneaker_lilac-and-white.jpg
+Source: https://drive.google.com/file/d/1QUNOrPh2zx2C8XcOmrm7nqM_KG3Qj1Y0/view?usp=drivesdk
+
+Original: 056_lifestyle_retro-casual-low-top_cream-and-burgundy.png
+Local JPEG: 056_lifestyle_retro-casual-low-top_cream-and-burgundy.jpg
+Source: https://drive.google.com/file/d/1-iifRivmG3j7QNaB4MFYOX5-WDeuH9Zc/view?usp=drivesdk
+
+Original: 057_lifestyle_knit-casual-slip-on_stone-gray.png
+Local JPEG: 057_lifestyle_knit-casual-slip-on_stone-gray.jpg
+Source: https://drive.google.com/file/d/1Qe205SqncJRgC8jCuPV94cPKO3H1DqzU/view?usp=drivesdk
+
+Original: 058_lifestyle_velvet-loafer_emerald-green.png
+Local JPEG: 058_lifestyle_velvet-loafer_emerald-green.jpg
+Source: https://drive.google.com/file/d/1DUn0M29mKXAVB_DQLZGuLGq5g1qVDnyX/view?usp=drivesdk
+
+Original: 059_lifestyle_lace-up-service-boot_mahogany.png
+Local JPEG: 059_lifestyle_lace-up-service-boot_mahogany.jpg
+Source: https://drive.google.com/file/d/1zAYm_WckJ_yhX8SOAUQ0yAnavFJ3V0ek/view?usp=drivesdk
+
+Original: 060_lifestyle_zip-ankle-boot_black.png
+Local JPEG: 060_lifestyle_zip-ankle-boot_black.jpg
+Source: https://drive.google.com/file/d/1fmh-scWcgZvoZzJqnNGJ1NXq9Sh0KRWQ/view?usp=drivesdk

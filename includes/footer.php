@@ -28,5 +28,6 @@
     <p class="footer-note">&copy; <?php echo date('Y'); ?> ReStep. IE4727 student project &ndash; no real payments are taken.</p>
 </footer>
 
+<script src="assets/script.js"></script>
 </body>
 </html>

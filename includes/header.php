@@ -6,7 +6,6 @@
     <title><?php echo e($page_title); ?> | <?php echo e($site_name); ?></title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="assets/style.css">
-    <script src="assets/script.js"></script>
 </head>
 <body>
 

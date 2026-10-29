@@ -3,6 +3,7 @@
 // It starts the session, connects to the database and holds small helper functions.
 session_start();
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/validation.php';
 
 // The shopping cart lives in the session: $_SESSION['cart'][size_id] = quantity
 if (!isset($_SESSION['cart'])) {
@@ -73,11 +74,52 @@ function get_sizes($db, $product_id) {
 // Email the customer a summary of their order with a link to check and change it.
 // (Sessions lecture: Sending Emails.) Returns true if the mail server accepted it.
 function send_order_email($db, $order_id, $subject, $intro) {
-    global $site_name, $site_url, $shop_email;
+    global $site_name, $site_url, $shop_email, $allowed_mail_recipients;
 
     $order_id = (int) $order_id;
-    $order = $db->query("SELECT * FROM orders WHERE id = $order_id")->fetch_assoc();
+    $result = $db->query("SELECT * FROM orders WHERE id = $order_id");
+
+    if (!$result) {
+        return false;
+    }
+
+    $order = $result->fetch_assoc();
+
+    // The brief permits only the student's own local account, not every
+    // address ending in @localhost. Do not call mail() for another recipient.
+    if (!$order) {
+        return false;
+    }
+
+    $recipient = '';
+
+    foreach ($allowed_mail_recipients as $allowed_address) {
+        if ($allowed_address == trim($allowed_address)
+            && preg_match('/^[\w.-]+@localhost$/', $allowed_address)
+            && $order['email'] == $allowed_address) {
+            $recipient = $allowed_address;
+        }
+    }
+
+    if ($recipient == '') {
+        return false;
+    }
+
+    $sender = $shop_email;
+
+    if ($sender == '') {
+        $sender = $recipient;
+    }
+
+    if ($sender != trim($sender) || !preg_match('/^[\w.-]+@localhost$/', $sender)) {
+        return false;
+    }
+
     $items = $db->query("SELECT * FROM order_items WHERE order_id = $order_id");
+
+    if (!$items) {
+        return false;
+    }
 
     $message = "Hi " . $order['name'] . ",\n\n";
     $message .= $intro . "\n\n";
@@ -90,7 +132,8 @@ function send_order_email($db, $order_id, $subject, $intro) {
     $message .= "----------------------------------------\n";
     $message .= "Total: " . money($order['total']) . "\n";
     $message .= "Payment: " . $order['payment_method'] . "\n\n";
-    $message .= "Deliver to:\n" . $order['name'] . "\n" . $order['address'] . "\nSingapore " . $order['postal_code'] . "\n\n";
+    $message .= "Deliver to:\n" . $order['name'] . "\n" . $order['address']
+              . "\nSingapore " . $order['postal_code'] . "\n\n";
     if ($order['status'] == 'Pending') {
         $message .= "Please check your order here. You can still change sizes, quantities\n";
         $message .= "or the delivery address until you confirm it:\n";
@@ -100,11 +143,17 @@ function send_order_email($db, $order_id, $subject, $intro) {
     $message .= $site_url . "order.php?id=" . $order_id . "\n\n";
     $message .= "Thank you for shopping with " . $site_name . "!\n";
 
-    $headers = 'From: ' . $shop_email . "\r\n" .
-               'Reply-To: ' . $shop_email . "\r\n" .
+    $headers = 'From: ' . $sender . "\r\n" .
+               'Reply-To: ' . $sender . "\r\n" .
                'X-Mailer: PHP/' . phpversion();
 
     // The @ hides the PHP warning if no mail server is running; we report it on the page instead.
-    return @mail($order['email'], $site_name . ' - ' . $subject . ' #' . $order_id, $message, $headers, '-f' . $shop_email);
+    return @mail(
+        $recipient,
+        $site_name . ' - ' . $subject . ' #' . $order_id,
+        $message,
+        $headers,
+        '-f' . $sender
+    );
 }
 ?>

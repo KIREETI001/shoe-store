@@ -5,31 +5,44 @@ require_login('account.php');
 
 $user_id = (int) $_SESSION['user_id'];
 $error = '';
+$user = $db->query("SELECT * FROM users WHERE id = $user_id")->fetch_assoc();
+$name = $user['name'];
+$phone = $user['phone'];
+$address = $user['address'];
+$postal_code = $user['postal_code'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = trim($_POST['name']);
-    $phone = trim($_POST['phone']);
-    $address = trim($_POST['address']);
-    $postal_code = trim($_POST['postal_code']);
+    $name = isset($_POST['name']) ? $_POST['name'] : '';
+    $phone = isset($_POST['phone']) ? $_POST['phone'] : '';
+    $address = isset($_POST['address']) ? $_POST['address'] : '';
+    $postal_code = isset($_POST['postal_code']) ? $_POST['postal_code'] : '';
 
-    if ($name == '') {
-        $error = 'Please enter your name.';
-    } elseif ($phone != '' && !preg_match('/^[689][0-9]{7}$/', $phone)) {
+    if (!is_valid_name($name)) {
+        $error = 'Please enter a name using letters and spaces, up to 100 characters.';
+    } elseif ($phone != '' && !is_valid_phone($phone)) {
         $error = 'Please enter an 8-digit Singapore phone number, or leave it blank.';
-    } elseif ($postal_code != '' && !preg_match('/^[0-9]{6}$/', $postal_code)) {
+    } elseif ($postal_code != '' && !is_valid_postal_code($postal_code)) {
         $error = 'Please enter a 6-digit postal code, or leave it blank.';
+    } elseif (strlen($address) > 255) {
+        $error = 'Please keep your address within 255 characters.';
     } else {
         $safe_name = $db->real_escape_string($name);
         $safe_address = $db->real_escape_string($address);
-        $db->query("UPDATE users SET name = '$safe_name', phone = '$phone', address = '$safe_address', postal_code = '$postal_code' WHERE id = $user_id");
-        $_SESSION['user_name'] = $name;
-        set_message('Your details have been saved.');
-        header('Location: account.php');
-        exit;
+        $saved = $db->query(
+            "UPDATE users
+             SET name = '$safe_name', phone = '$phone', address = '$safe_address', postal_code = '$postal_code'
+             WHERE id = $user_id"
+        );
+        if ($saved) {
+            $_SESSION['user_name'] = $name;
+            set_message('Your details have been saved.');
+            header('Location: account.php');
+            exit;
+        }
+        $error = 'Your details could not be saved. Please try again.';
     }
 }
 
-$user = $db->query("SELECT * FROM users WHERE id = $user_id")->fetch_assoc();
 $orders = $db->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY id DESC");
 
 $page_title = 'My account';
@@ -58,7 +71,11 @@ include 'includes/header.php';
                 <td>#<?php echo $order['id']; ?></td>
                 <td><?php echo date('j M Y', strtotime($order['created_at'])); ?></td>
                 <td><?php echo money($order['total']); ?></td>
-                <td><span class="status status-<?php echo strtolower($order['status']); ?>"><?php echo e($order['status']); ?></span></td>
+                <td>
+                    <span class="status status-<?php echo strtolower($order['status']); ?>">
+                        <?php echo e($order['status']); ?>
+                    </span>
+                </td>
                 <td>
                     <a class="text-link" href="order.php?id=<?php echo $order['id']; ?>">
                         <?php echo $order['status'] == 'Pending' ? 'Check and confirm' : 'View'; ?>
@@ -76,22 +93,25 @@ include 'includes/header.php';
     <?php if ($error != '') { ?>
         <p class="error"><?php echo e($error); ?></p>
     <?php } ?>
-    <form action="account.php" method="post">
+    <form id="account-form" action="account.php" method="post">
         <label for="account-email">Email (used to sign in)</label>
         <input type="email" id="account-email" value="<?php echo e($user['email']); ?>" disabled>
 
         <label for="account-name">Name</label>
-        <input type="text" id="account-name" name="name" value="<?php echo e($user['name']); ?>" required>
+        <input type="text" id="account-name" name="name" value="<?php echo e($name); ?>" maxlength="100" required>
 
         <label for="account-phone">Mobile number</label>
-        <input type="tel" id="account-phone" name="phone" value="<?php echo e($user['phone']); ?>" maxlength="8">
+        <input type="tel" id="account-phone" name="phone" value="<?php echo e($phone); ?>"
+               maxlength="8" pattern="[689][0-9]{7}">
 
         <label for="account-address">Address</label>
-        <input type="text" id="account-address" name="address" value="<?php echo e($user['address']); ?>">
+        <input type="text" id="account-address" name="address" value="<?php echo e($address); ?>" maxlength="255">
 
         <label for="account-postal">Postal code</label>
-        <input type="text" id="account-postal" name="postal_code" value="<?php echo e($user['postal_code']); ?>" maxlength="6">
+        <input type="text" id="account-postal" name="postal_code" value="<?php echo e($postal_code); ?>"
+               maxlength="6" pattern="[0-9]{6}">
 
+        <p id="account-error" class="error-text"></p>
         <button class="button" type="submit">Save details</button>
     </form>
 </div>
