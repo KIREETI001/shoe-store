@@ -3,6 +3,42 @@
 require_once 'includes/functions.php';
 require_login('checkout.php');
 
+// A session counter identifies this checkout attempt using taught session values.
+if (!isset($_SESSION['checkout_attempt'])) {
+    $_SESSION['checkout_attempt'] = 1;
+}
+
+// A stale form from another signed-in account must not match a new counter.
+$attempt_prefix = $_SESSION['user_id'] . ':';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $submitted_attempt = isset($_POST['checkout_attempt']) ? $_POST['checkout_attempt'] : '';
+
+    // Check a completed attempt before the empty-bag redirect. A repeated POST
+    // opens its owned order without reserving stock or sending mail again.
+    if (isset($_SESSION['last_checkout_attempt']) && isset($_SESSION['last_checkout_order_id'])
+        && $submitted_attempt === ($attempt_prefix . $_SESSION['last_checkout_attempt'])) {
+        $completed_order_id = (int) $_SESSION['last_checkout_order_id'];
+        $completed_user_id = (int) $_SESSION['user_id'];
+        $completed_result = $db->query(
+            "SELECT id FROM orders
+             WHERE id = $completed_order_id AND user_id = $completed_user_id"
+        );
+
+        if ($completed_result && $completed_result->fetch_assoc()) {
+            header('Location: order.php?id=' . $completed_order_id);
+            exit;
+        }
+    }
+
+    // Exact string comparison also rejects missing or array-valued form input.
+    if ($submitted_attempt !== ($attempt_prefix . $_SESSION['checkout_attempt'])) {
+        set_message('This checkout form is out of date. Please review it and try again.');
+        header('Location: checkout.php');
+        exit;
+    }
+}
+
 $items = get_cart_items($db);
 
 if (count($items) == 0) {
@@ -78,6 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($card_number_length > 19 || strlen($card_number) != 16
             || !preg_match('/^[0-9]{16}$/', $card_number)) {
             $errors[] = 'Please enter the 16-digit card number.';
+        } elseif (substr($card_number, -4) == '9999') {
+            $errors[] = 'This transaction was rejected. Please try another card.';
         }
 
         if (!is_valid_expiry($card_expiry)) {
@@ -212,6 +250,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (count($errors) == 0) {
+        // Consume the attempt only after every required save has succeeded.
+        $_SESSION['last_checkout_attempt'] = $_SESSION['checkout_attempt'];
+        $_SESSION['last_checkout_order_id'] = $order_id;
+        $_SESSION['checkout_attempt'] = $_SESSION['checkout_attempt'] + 1;
         $_SESSION['cart'] = array();
         $sent = send_order_email(
             $db,
@@ -245,7 +287,7 @@ include 'includes/header.php';
 
 <?php if (count($errors) > 0) { ?>
     <div class="error">
-        <p><strong>Please fix the following:</strong></p>
+        <p><strong>Checkout unsuccessful. Please fix the following:</strong></p>
         <ul>
             <?php foreach ($errors as $error) { ?>
                 <li><?php echo e($error); ?></li>
@@ -256,6 +298,8 @@ include 'includes/header.php';
 
 <div class="cart-layout">
     <form id="checkout-form" action="checkout.php" method="post">
+        <input type="hidden" name="checkout_attempt"
+               value="<?php echo e($attempt_prefix . $_SESSION['checkout_attempt']); ?>">
         <fieldset>
             <legend>Delivery details</legend>
             <label for="name">Full name <span class="required">*</span></label>

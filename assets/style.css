@@ -723,14 +723,15 @@ th, td {
 /* ---------- Help and about pages ---------- */
 .faq {
     max-width: 800px;
+    margin: 0 auto;
 }
 
 .faq h2 {
     margin-top: 35px;
 }
 
-details {
-    border-top: 1px solid #dfdfd9;
+.faq details {
+    border-bottom: 1px solid #dfdfd9;
     padding: 14px 0;
 }
 
@@ -813,6 +814,16 @@ summary {
         flex-direction: column;
     }
 
+    .contact-layout {
+        align-items: center;
+    }
+
+    .contact-layout > form.panel,
+    .contact-layout > .summary {
+        width: 100%;
+        max-width: 760px;
+    }
+
     .summary {
         width: 100%;
     }
@@ -881,4 +892,3 @@ summary {
     color: #ff0000; /* Turns the asterisk bright red */
     margin-left: 2px;
 }
-
