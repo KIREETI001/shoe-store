@@ -45,7 +45,7 @@ include 'includes/header.php';
 <h1>Contact us</h1>
 <p>Questions about sizes, an order or anything else? Send us a message.</p>
 
-<div class="cart-layout">
+<div class="cart-layout contact-layout">
     <form class="panel" action="contact.php" method="post">
         <?php if ($error != '') { ?>
             <p class="error"><?php echo e($error); ?></p>

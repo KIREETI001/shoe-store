@@ -4,9 +4,8 @@ $page_title = 'Help & size guide';
 include 'includes/header.php';
 ?>
 
-<h1>Help &amp; Size Guide</h1>
-
 <div class="faq">
+    <h1>Help &amp; Size Guide</h1>
     <h2>Shopping</h2>
     <details>
         <summary>How do I find the right pair?</summary>
@@ -134,7 +133,7 @@ include 'includes/header.php';
     </details>
     <details>
         <summary>Which payment methods can I use?</summary>
-        <p>Credit or debit card, or cash on delivery. (This is a student project, so no real payment is taken.)</p>
+        <p>Credit or debit card, or cash on delivery.</p>
     </details>
 </div>
 

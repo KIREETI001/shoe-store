@@ -3,6 +3,10 @@
 require_once 'includes/functions.php';
 require_login('checkout.php');
 
+if (!isset($_SESSION['checkout_token'])) {
+    $_SESSION['checkout_token'] = bin2hex(random_bytes(16));
+}
+
 $items = get_cart_items($db);
 if (count($items) == 0) {
     header('Location: cart.php');
@@ -25,6 +29,16 @@ $payment = 'Card';
 $errors = array();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (
+        !isset($_POST['checkout_token']) ||
+        !is_string($_POST['checkout_token']) ||
+        !hash_equals($_SESSION['checkout_token'], $_POST['checkout_token'])
+    ) {
+        set_message('This checkout form has already been submitted. Please try again.');
+        header('Location: checkout.php');
+        exit;
+    }
+
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone']);
@@ -53,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $card_number = str_replace(' ', '', $_POST['card_number']);
         if (!preg_match('/^[0-9]{16}$/', $card_number)) {
             $errors[] = 'Please enter the 16-digit card number.';
+        } elseif (substr($card_number, -4) == '9999') {
+            $errors[] = 'This transaction was rejected. Please try another card.';
         }
         if (!preg_match('/^(0[1-9]|1[0-2])\/[0-9]{2}$/', trim($_POST['card_expiry']))) {
             $errors[] = 'Please enter the card expiry date as MM/YY.';
@@ -72,6 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (count($errors) == 0) {
+        unset($_SESSION['checkout_token']);
+
         // Save the order
         $s_name = $db->real_escape_string($name);
         $s_email = $db->real_escape_string($email);
@@ -116,17 +134,18 @@ include 'includes/header.php';
 
 <?php if (count($errors) > 0) { ?>
     <div class="error">
-        <p><strong>Please fix the following:</strong></p>
-        <ul>
+        <p><strong>Payment Unsuccessful</strong></p>
+        
             <?php foreach ($errors as $error) { ?>
-                <li><?php echo e($error); ?></li>
+                <?php echo e($error); ?>
             <?php } ?>
-        </ul>
+        
     </div>
 <?php } ?>
 
 <div class="cart-layout">
     <form id="checkout-form" action="checkout.php" method="post" onsubmit="return checkCheckoutForm();">
+        <input type="hidden" name="checkout_token" value="<?php echo e($_SESSION['checkout_token']); ?>">
         <fieldset>
             <legend>Delivery details</legend>
             <label for="name">Full name <span class="required">*</span></label>
