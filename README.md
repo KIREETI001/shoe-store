@@ -7,10 +7,19 @@ A web portal for buying sport and lifestyle shoes, built with HTML, CSS, JavaScr
 1. Keep the `shoe-store` folder in `C:\xampp\htdocs\IE4727\`.
 2. Start **Apache** and **MySQL** in the XAMPP control panel.
 3. Open phpMyAdmin, create a database called `restep`, select it, then import
-   `database/schema.sql` first and `database/seed.sql` second.
+   `database/schema.sql` first and `database/seed.sql` second. `schema.sql` is the
+   single setup script; `seed.sql` contains the separate product and stock data.
 4. Check `config.php` and your private `config.local.php` override. The current setup
    uses MySQL on port **3306** and Apache on port **8000**.
 5. Open http://localhost:8000/IE4727/shoe-store/ and create an account.
+6. For Admin access, register the team's own `f31ee@localhost` and
+   `f32ee@localhost` accounts, signing out between registrations. In phpMyAdmin,
+   run only the final `UPDATE` under **SECTION 2** of `database/schema.sql` after
+   confirming the accounts belong to the team. Refresh the site to see Admin.
+
+The `is_admin` column is included in the table definitions. No separate upgrade
+or grant file is needed for future fresh setups. An installation that already
+has working Admin access needs no database changes.
 
 Use a different port or folder if your XAMPP setup requires it, and update `$site_url`
 to the full application URL including its trailing slash. Order emails use this URL.

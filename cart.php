@@ -4,6 +4,9 @@
 require_once 'includes/functions.php';
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
+// Only the Update form contains arrays; Add sends one size and one quantity.
+$array_fields = $action === 'update' ? array('size', 'quantity') : array();
+require_valid_request($array_fields);
 
 // 1. Add a shoe from the product page
 if ($action == 'add') {

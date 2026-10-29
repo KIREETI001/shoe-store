@@ -39,6 +39,46 @@ function require_login($return_to) {
     }
 }
 
+// Stop malformed requests before a handler can change any saved data.
+function require_valid_request($array_fields = array()) {
+    global $db, $site_name;
+
+    if (!valid_request_fields($_GET, array()) || !valid_request_fields($_POST, $array_fields)) {
+        $page_title = 'Please check the form';
+        $heading = 'The form could not be read.';
+        $text = 'Please return to the site and enter one value in each field. Nothing was saved.';
+        $link = 'index.php';
+        $link_text = 'Back to home';
+        include __DIR__ . '/not-found.php';
+        exit;
+    }
+}
+
+// Admin access comes from the saved account, never from a posted role or email.
+function is_admin_user($db) {
+    global $admin_emails;
+
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+
+    $user_id = (int) $_SESSION['user_id'];
+    $result = $db->query("SELECT email, is_admin FROM users WHERE id = $user_id");
+    $user = $result ? $result->fetch_assoc() : false;
+
+    if (!$user || $user['is_admin'] != 1) {
+        return false;
+    }
+
+    foreach ($admin_emails as $email) {
+        if ($user['email'] === $email) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // Read the cart from the session and look up each item's details in the database.
 // Only IDs and quantities are kept in the session; prices always come from MySQL.
 function get_cart_items($db) {

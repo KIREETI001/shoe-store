@@ -2,6 +2,7 @@
 // My account: saved details and order history (members-only page).
 require_once 'includes/functions.php';
 require_login('account.php');
+require_valid_request();
 
 $user_id = (int) $_SESSION['user_id'];
 $error = '';
@@ -49,8 +50,16 @@ $page_title = 'My account';
 include 'includes/header.php';
 ?>
 
-<h1>My account</h1>
-<p>Hello, <?php echo e($user['name']); ?>. <a class="text-link" href="logout.php">Sign out</a></p>
+<div class="page-intro">
+    <div>
+        <p class="eyebrow">MY RESTEP</p>
+        <h1>My account</h1>
+        <p>Hello, <?php echo e($user['name']); ?>. <a class="text-link" href="logout.php">Sign out</a></p>
+        <p>Review your orders and keep your delivery details up to date.</p>
+    </div>
+    <img src="assets/images/003_sports_marathon-racing_coral-and-cream.jpg"
+         alt="Coral and cream ReStep Tempo running shoe" width="220" height="220">
+</div>
 
 <div class="panel" id="orders">
     <h2>My orders</h2>
@@ -58,32 +67,42 @@ include 'includes/header.php';
         <p>You have not placed any orders yet.</p>
         <a class="button" href="products.php">Start shopping</a>
     <?php } else { ?>
-        <table>
-            <tr>
-                <th>Order</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-            <?php while ($order = $orders->fetch_assoc()) { ?>
-            <tr>
-                <td>#<?php echo $order['id']; ?></td>
-                <td><?php echo date('j M Y', strtotime($order['created_at'])); ?></td>
-                <td><?php echo money($order['total']); ?></td>
-                <td>
-                    <span class="status status-<?php echo strtolower($order['status']); ?>">
-                        <?php echo e($order['status']); ?>
-                    </span>
-                </td>
-                <td>
-                    <a class="text-link" href="order.php?id=<?php echo $order['id']; ?>">
-                        <?php echo $order['status'] == 'Pending' ? 'Check and confirm' : 'View'; ?>
-                    </a>
-                </td>
-            </tr>
-            <?php } ?>
-        </table>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Your order history">
+            <table class="account-orders">
+                <caption>Your orders, newest first</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Order</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($order = $orders->fetch_assoc()) { ?>
+                    <tr>
+                        <td>#<?php echo $order['id']; ?></td>
+                        <td><?php echo date('j M Y', strtotime($order['created_at'])); ?></td>
+                        <td><?php echo money($order['total']); ?></td>
+                        <td>
+                            <span class="status status-<?php echo strtolower($order['status']); ?>">
+                                <?php echo e($order['status']); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a class="text-link" href="order.php?id=<?php echo $order['id']; ?>">
+                                <?php echo $order['status'] == 'Pending' ? 'Check and confirm' : 'View'; ?>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+                <tfoot>
+                    <tr><td colspan="5">Pending orders can still be checked and changed.</td></tr>
+                </tfoot>
+            </table>
+        </div>
     <?php } ?>
 </div>
 

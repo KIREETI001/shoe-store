@@ -1,9 +1,10 @@
 <?php
 // Sign in and register on one page (Sessions lecture).
 require_once 'includes/functions.php';
+require_valid_request();
 
-$next = isset($_REQUEST['next']) ? $_REQUEST['next'] : 'account.php';
-if (!preg_match('/^(account|checkout|order)\.php(\?id=[0-9]+)?$/', $next)) {
+$next = post_value('next', get_value('next', 'account.php'));
+if (!preg_match('/^(account|checkout|order|admin)\.php(\?id=[0-9]+)?$/', $next)) {
     $next = 'account.php';
 }
 if (isset($_SESSION['user_id'])) {
@@ -94,7 +95,15 @@ $page_title = 'Sign in';
 include 'includes/header.php';
 ?>
 
-<h1>Sign in or create an account</h1>
+<div class="page-intro">
+    <div>
+        <p class="eyebrow">MY RESTEP</p>
+        <h1>Sign in or create an account</h1>
+        <p>Save your delivery details and keep your shoe orders together.</p>
+    </div>
+    <img src="assets/images/056_lifestyle_retro-casual-low-top_cream-and-burgundy.jpg"
+         alt="Cream and burgundy ReStep Retro shoe from the lifestyle collection" width="220" height="220">
+</div>
 <?php if ($next == 'checkout.php') { ?>
     <p>Sign in to check out. Your bag will be kept.</p>
 <?php } ?>

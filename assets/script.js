@@ -275,9 +275,7 @@ function checkOrderForm() {
     for (var i = 0; i < form.elements.length; i++) {
         var input = form.elements[i];
         if (input.id.search(/^order-quantity-/) == 0) {
-            var itemId = input.id.replace("order-quantity-", "");
-            var remove = document.getElementById("order-remove-" + itemId);
-            if (!remove.checked && !isValidQuantity(input.value)) {
+            if (!isValidQuantity(input.value)) {
                 showError("order-error", "Please choose a whole-number quantity from 1 to 10"
                     + " for every shoe you are keeping.");
                 input.focus();
@@ -286,6 +284,20 @@ function checkOrderForm() {
         }
     }
     return checkDeliveryFields("order-error");
+}
+
+function checkAdminPriceForm() {
+    showError("admin-price-error", "");
+    var price = document.getElementById("admin-price");
+    if (!/^(0|[1-9][0-9]{0,5})(\.[0-9]{1,2})?$/.test(price.value)
+        || price.value.search(/[^0-9.]/) != -1
+        || parseFloat(price.value) < 0.01 || parseFloat(price.value) > 999999.99) {
+        showError("admin-price-error", "Enter a price from 0.01 to 999999.99,"
+            + " with no more than two decimal places.");
+        price.focus();
+        return false;
+    }
+    return true;
 }
 
 // Returning false from these property handlers cancels an invalid submission.
@@ -300,6 +312,10 @@ if (form) {
 form = document.getElementById("account-form");
 if (form) {
     form.onsubmit = checkAccountForm;
+}
+form = document.getElementById("admin-price-form");
+if (form) {
+    form.onsubmit = checkAdminPriceForm;
 }
 form = document.getElementById("contact-form");
 if (form) {

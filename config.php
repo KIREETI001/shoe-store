@@ -24,6 +24,13 @@ $allowed_mail_recipients = array(
 // Optional local sender. An empty value uses the matched permitted recipient.
 $shop_email = '';
 
+// These team accounts can use Admin after signing in with their saved password.
+// This list controls access separately from permission to receive local mail.
+$admin_emails = array(
+    'f31ee@localhost',
+    'f32ee@localhost'
+);
+
 // Optional settings for this computer only (not included in the submission)
 if (file_exists(__DIR__ . '/config.local.php')) {
     include __DIR__ . '/config.local.php';

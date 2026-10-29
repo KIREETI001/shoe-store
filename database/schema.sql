@@ -1,6 +1,13 @@
--- ReStep database tables.
--- In phpMyAdmin: create an empty database called restep, select it,
--- then import this file first and seed.sql second.
+-- ReStep database setup: tables and administrator permissions.
+-- 1. In phpMyAdmin, create an EMPTY database called restep and select it.
+-- 2. Import this file, then import the separate, unchanged seed.sql.
+-- 3. Register the team's own f31ee@localhost and f32ee@localhost accounts
+--    through the website. Sign out between registrations.
+-- 4. Return to phpMyAdmin and run ONLY the UPDATE in SECTION 2 below.
+--    Accounts must exist before that statement can grant Admin access.
+-- Do not import this entire file into an existing, populated database.
+
+-- SECTION 1: Fresh database tables
 
 -- Registered customers
 CREATE TABLE users (
@@ -8,6 +15,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    is_admin INT NOT NULL DEFAULT 0,   -- only granted through the database, never registration
     phone VARCHAR(20) NOT NULL DEFAULT '',
     address VARCHAR(255) NOT NULL DEFAULT '',
     postal_code VARCHAR(10) NOT NULL DEFAULT ''
@@ -34,8 +42,8 @@ CREATE TABLE product_sizes (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
--- One row per order. status is Pending (customer can still change it),
--- Confirmed (customer has checked and locked it) or Cancelled.
+-- One row per order. Pending allows customer changes; Confirmed locks them.
+-- Admin can advance Confirmed to Shipped, then Delivered. Cancelled is final.
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -75,3 +83,12 @@ CREATE TABLE enquiries (
     message TEXT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- SECTION 2: Administrator permissions (run after team registration)
+-- Confirm that these account records belong to the team before granting access.
+-- The initial fresh import affects no users because none have registered yet.
+-- Public registration always creates customers; it cannot grant Admin access.
+-- Admin also checks the separate admin_emails list in config.php.
+UPDATE users
+SET is_admin = 1
+WHERE email IN ('f31ee@localhost', 'f32ee@localhost');

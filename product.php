@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/functions.php';
+require_valid_request();
 
 $product_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $product = $db->query("SELECT * FROM products WHERE id = $product_id")->fetch_assoc();
@@ -46,7 +47,7 @@ include 'includes/header.php';
             <input type="hidden" name="action" value="add">
             <input type="hidden" id="unit-price" value="<?php echo $product['price']; ?>">
 
-            <p class="size-heading"><strong>Choose your size (EU)</strong> <a href="faq.php#size-guide">Size guide</a></p>
+            <p class="size-heading"><strong>Choose your size (EU)</strong> <a href="contact.php#size-guide">Size guide</a></p>
             <div class="sizes">
                 <?php foreach ($sizes as $s) { ?>
                     <?php if ($s['stock'] > 0) { ?>

@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/functions.php';
+require_valid_request();
 
 // Read the filter values from the URL (the filter form uses method="get")
 $search   = isset($_GET['search'])   ? trim($_GET['search'])   : '';

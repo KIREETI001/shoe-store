@@ -4,6 +4,7 @@
 // or the delivery address, then confirm it. After that it can no longer be changed.
 require_once 'includes/functions.php';
 require_once 'includes/order-actions.php';
+require_valid_request(array('size', 'quantity', 'remove'));
 
 $order_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 require_login('order.php?id=' . $order_id);
@@ -34,7 +35,7 @@ $action = isset($_POST['action']) ? $_POST['action'] : '';
 if (isset($_POST['remove_item_id'])) {
     $remove_item_id = $_POST['remove_item_id'];
 
-    if (!is_string($remove_item_id) || !preg_match('/^[1-9][0-9]*$/', $remove_item_id)) {
+    if (!preg_match('/^[1-9][0-9]*$/', $remove_item_id)) {
         $errors[] = 'Please choose a valid order item to remove.';
     } else {
         $remove_item_id = (int) $remove_item_id;
@@ -215,6 +216,10 @@ include 'includes/header.php';
     <div class="notice success">Your demonstration order is confirmed. No real payment is taken.</div>
 <?php } elseif ($order['status'] == 'Cancelled') { ?>
     <div class="notice">This demonstration order was cancelled. No real payment is taken.</div>
+<?php } elseif ($order['status'] == 'Shipped') { ?>
+    <div class="notice success">Your order has been shipped. Delivery takes 3 to 5 working days.</div>
+<?php } elseif ($order['status'] == 'Delivered') { ?>
+    <div class="notice success">Your order has been delivered. Thank you for shopping with ReStep.</div>
 <?php } else { ?>
     <div class="notice">Your order is currently unavailable for changes.</div>
 <?php } ?>

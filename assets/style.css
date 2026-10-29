@@ -469,6 +469,7 @@ input[type=password],
 input[type=search],
 input[type=tel],
 input[type=number],
+input[type=date],
 select,
 textarea {
     width: 100%;
@@ -590,11 +591,6 @@ th, td {
     padding: 12px 8px;
     border-bottom: 1px solid #dfdfd9;
     vertical-align: middle;
-}
-
-.size-table {
-    max-width: 650px;
-    background: white;
 }
 
 /* ---------- Bag, checkout and order pages ---------- */
@@ -820,6 +816,169 @@ summary {
     background: #e6e6e3;
 }
 
+/* ---------- Account, contact and admin ---------- */
+.page-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.page-intro > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-intro img {
+    width: 180px;
+    height: 180px;
+    background: #e6e6e3;
+}
+
+.help-photo {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.table-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.table-scroll:focus {
+    outline: 2px solid #cf4421;
+}
+
+.account-orders {
+    min-width: 550px;
+}
+
+caption {
+    padding: 10px 8px;
+    font-weight: bold;
+    text-align: left;
+    color: #44433f;
+}
+
+tfoot {
+    font-size: 13px;
+    background: #eeede7;
+}
+
+.faq h3 {
+    margin-top: 35px;
+    font-size: 22px;
+}
+
+#our-story {
+    margin-top: 40px;
+}
+
+.status-shipped {
+    background: #dfe9ee;
+    color: #294c62;
+}
+
+.status-delivered {
+    background: #e4ebd8;
+    color: #3e5c27;
+}
+
+.admin-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.admin-section {
+    margin-bottom: 35px;
+}
+
+.admin-form {
+    max-width: 650px;
+}
+
+.admin-table {
+    min-width: 620px;
+}
+
+.admin-status-form {
+    min-width: 150px;
+}
+
+.admin-status-form .button {
+    padding: 8px 12px;
+}
+
+/* ---------- Size guide ---------- */
+.size-table-container {
+    margin: 30px auto;
+    max-width: 650px;
+    border: 1px solid #dfdfd9;
+    border-radius: 8px;
+    overflow-x: auto;
+    background: #fff;
+}
+
+.size-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.size-table th {
+    background-color: #252622;
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    padding: 16px 14px;
+    text-align: center;
+
+    border-right: 1px solid #51524b;
+}
+
+
+.size-table th:last-child {
+    border-right: none;
+}
+
+.size-table td {
+    padding: 14px 14px;
+    border-bottom: 1px solid #dfdfd9;
+    text-align: center;
+
+    border-right: 1px solid #dfdfd9;
+    color: #44433f;
+}
+
+
+.size-table td:last-child {
+    border-right: none;
+}
+
+
+.size-table tbody tr:hover {
+    background-color: #f0efe7;
+}
+
+
+.size-table td:first-child {
+    font-weight: bold;
+    color: #252622;
+}
+
+
+.size-table tbody tr:last-of-type td {
+    border-bottom: none;
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
     background: #252622;
@@ -922,6 +1081,28 @@ summary {
     .filters,
     .about img {
         width: 100%;
+    }
+
+    .page-intro {
+        align-items: flex-start;
+    }
+
+    .page-intro img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .page-intro h1 {
+        font-size: 28px;
+    }
+
+    .page-intro .eyebrow {
+        letter-spacing: 1px;
+    }
+
+    .size-table th,
+    .size-table td {
+        padding: 10px 6px;
     }
 
     /* Logo and links on the first row, menu on the second, search on the third */

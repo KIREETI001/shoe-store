@@ -1,0 +1,5 @@
+# XAMPP uses PHP as an Apache module. Configure the shop's local calendar time
+# here so PHP expiry checks and displayed dates use Singapore time.
+<IfModule php_module>
+    php_value date.timezone Asia/Singapore
+</IfModule>

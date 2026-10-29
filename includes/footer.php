@@ -14,8 +14,8 @@
         </div>
         <div>
             <h2>Help</h2>
-            <a href="faq.php">FAQ &amp; size guide</a>
-            <a href="faq.php#delivery">Delivery &amp; returns</a>
+            <a href="contact.php#help">FAQ &amp; size guide</a>
+            <a href="contact.php#delivery">Delivery &amp; returns</a>
             <a href="contact.php">Contact us</a>
         </div>
         <div>

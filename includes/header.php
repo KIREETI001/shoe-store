@@ -18,8 +18,8 @@
         <a href="products.php">Shop all</a>
         <a href="products.php?category=Sport">Sport</a>
         <a href="products.php?category=Lifestyle">Lifestyle</a>
-        <a href="about.php">Our story</a>
-        <a href="faq.php">Help</a>
+        <a href="index.php#our-story">Our story</a>
+        <a href="contact.php#help">Help</a>
     </nav>
 
     <form class="header-search" action="products.php" method="get">
@@ -29,6 +29,9 @@
     <div class="header-links">
         <?php if (isset($_SESSION['user_id'])) { ?>
             <a href="account.php">Hi, <?php echo e($_SESSION['user_name']); ?></a>
+            <?php if (is_admin_user($db)) { ?>
+                <a href="admin.php">Admin</a>
+            <?php } ?>
         <?php } else { ?>
             <a href="login.php">Sign in</a>
         <?php } ?>

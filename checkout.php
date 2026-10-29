@@ -2,14 +2,15 @@
 // Validate delivery and demo card details before reserving stock or saving data.
 require_once 'includes/functions.php';
 require_login('checkout.php');
+require_valid_request();
 
 // A session counter identifies this checkout attempt using taught session values.
 if (!isset($_SESSION['checkout_attempt'])) {
     $_SESSION['checkout_attempt'] = 1;
 }
 
-// A stale form from another signed-in account must not match a new counter.
-$attempt_prefix = $_SESSION['user_id'] . ':';
+// The session ID changes after logout, so an old form cannot match a fresh login.
+$attempt_prefix = session_id() . ':' . $_SESSION['user_id'] . ':';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $submitted_attempt = isset($_POST['checkout_attempt']) ? $_POST['checkout_attempt'] : '';
@@ -127,6 +128,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     } elseif ($payment != 'Cash on delivery') {
         $errors[] = 'Please choose a payment method.';
+    }
+
+    // orders.total is DECIMAL(8,2). Reject an oversized bag before reserving stock.
+    if ($total > 999999.99) {
+        $errors[] = 'An order can total at most S$999,999.99. Please reduce the quantities in your bag.';
     }
 
     // Validate the complete bag before the first stock or order write.
