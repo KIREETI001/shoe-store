@@ -235,12 +235,13 @@ These are not prerequisites merely because they appear in an earlier audit. Add 
 | EXT-ADM-03 | View product/cart prices after update; inspect an older order. | Current purchases use new database price; historical order-item price remains unchanged. | Browser + DB | Not implemented / Not run |
 | EXT-ADM-04 | Choose reporting day with independently recorded confirmed orders, other-day orders, Pending/Cancelled orders, and a no-sales day. | Correct daily product/category quantities and revenue; agreed eligible statuses only; useful zero-sales result. | Browser + DB manual sums | Not implemented / Not run |
 | EXT-ADM-05 | Supply records with different revenue/quantity rankings and ties. | Best product is highest dollar sales; its popular size is highest quantity. Revenue ties use ascending product ID; size ties use ascending EU size. | Browser + DB | Not implemented / Not run |
+| EXT-ADM-06 | Choose a date with orders in each delivery status, then choose a date with no orders. | Status summary shows order count, pairs and order value per status for that date; sales total includes only Confirmed, Shipped and Delivered; empty date shows zero totals. | Browser + DB manual sums | Not implemented / Not run |
 | EXT-SHOP-01 | Apply size/price/sort, switch category, then choose an incompatible activity. | Compatible filters retained; invalid activity cleared explicitly; results match combined constraints. | Browser + DB | Not implemented / Not run |
 | EXT-SHOP-02 | View a shoe with no available size and a low-stock bag line. | Sold-out card/button state and useful stock warning match database; server still prevents purchase. | Browser + DB | Not implemented / Not run |
 | EXT-ORD-01 | Change quantity/removal in review before saving; then save, including invalid input. | Proposed live total updates accurately; invalid proposal identified; server saved total remains authoritative. | Browser + DB | Not implemented / Not run |
 | EXT-ORD-02 | Open account with zero, one and multiple Pending orders; confirm/cancel one and reload. | Reminder count and links are correct and scoped to the owner; update after state change. | Browser + DB | Not implemented / Not run |
-| EXT-STATUS-01 | Admin advances Confirmed to Shipped to Delivered; try skipped/reversed/cancelled-order transitions and forged non-admin POST. | Only allowed admin transitions persist; account/order display agrees. | Browser + DB | Not implemented / Not run |
-| EXT-STATUS-02 | Change status for an order addressed to SELF; repeat with local mail unavailable and a blocked recipient using disabled sending. | Correct local notification when permitted; saved status and mail result distinguished; no prohibited send. | Browser + DB + permitted mailbox | Not implemented / Not run |
+| EXT-STATUS-01 | Admin advances Confirmed to Shipped to Delivered and uses Undo to return Delivered to Shipped and Shipped to Confirmed; try skipped/Pending/Cancelled transitions and forged non-admin POST. | Only adjacent delivery-status transitions persist; Undo sends no email; account/order display agrees. | Browser + DB | Not implemented / Not run |
+| EXT-STATUS-02 | Advance a status for an order addressed to SELF; repeat with local mail unavailable and a blocked recipient using disabled sending. | Correct local notification when permitted; saved status and mail result distinguished; no prohibited send. | Browser + DB + permitted mailbox | Not implemented / Not run |
 
 ## Evidence record template
 
@@ -259,4 +260,3 @@ Pass / Fail / Blocked:
 Screenshot, email and database evidence:
 Fix and dated retest, if applicable:
 ```
-

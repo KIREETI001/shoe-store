@@ -93,12 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $order_id = post_value('order_id');
         $old_status = post_value('current_status');
         $new_status = post_value('status');
-        $valid_change = ($old_status == 'Confirmed' && $new_status == 'Shipped')
+        $forward_change = ($old_status == 'Confirmed' && $new_status == 'Shipped')
             || ($old_status == 'Shipped' && $new_status == 'Delivered');
+        $backward_change = ($old_status == 'Delivered' && $new_status == 'Shipped')
+            || ($old_status == 'Shipped' && $new_status == 'Confirmed');
+        $valid_change = $forward_change || $backward_change;
 
         if (!preg_match('/^[1-9][0-9]{0,9}$/', $order_id)
             || preg_match('/[^0-9]/', $order_id) || !$valid_change) {
-            $error = 'Choose the next fulfilment step for a confirmed order.';
+            $error = 'Choose the next or previous fulfilment step for this order.';
         } else {
             $order_id = (int) $order_id;
             $saved = $db->query(
@@ -111,6 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $error = 'The order status could not be saved. Please try again.';
             } elseif ($db->affected_rows != 1) {
                 $error = 'This order has already changed. Review its current status below.';
+            } elseif ($backward_change) {
+                set_message('Order #' . $order_id . ' status restored to ' . $new_status . '.');
             } else {
                 $message = 'Order #' . $order_id . ' is now ' . $new_status . '.';
                 $intro = $new_status == 'Shipped'
@@ -155,7 +160,22 @@ if (preg_match('/^[1-9][0-9]{0,9}$/', $selected_id)
 }
 
 $orders = $db->query('SELECT * FROM orders ORDER BY id DESC');
+$enquiries = $db->query(
+    'SELECT name, email, subject, message, created_at
+     FROM enquiries
+     ORDER BY created_at DESC, id DESC'
+);
 $report_error = '';
+$delivery_statuses = array(
+    'Pending' => array('orders' => 0, 'quantity' => 0, 'order_value' => 0),
+    'Confirmed' => array('orders' => 0, 'quantity' => 0, 'order_value' => 0),
+    'Shipped' => array('orders' => 0, 'quantity' => 0, 'order_value' => 0),
+    'Delivered' => array('orders' => 0, 'quantity' => 0, 'order_value' => 0),
+    'Cancelled' => array('orders' => 0, 'quantity' => 0, 'order_value' => 0)
+);
+$status_sales_orders = 0;
+$status_sales_quantity = 0;
+$status_sales_revenue = 0;
 $product_sales = array();
 $category_sales = array(
     'Sport' => array('quantity' => 0, 'revenue' => 0),
@@ -171,8 +191,22 @@ $popular_size_quantity = 0;
 if (!admin_valid_date($report_date)) {
     $report_error = 'Please choose a valid report date.';
 } else {
-    // Revenue uses the order price, not today's product price. Pending reviews
-    // and cancelled orders do not count as sales. The day is the order date.
+    $status_summary = $db->query(
+        "SELECT status, COUNT(*) AS order_count, SUM(item_quantity) AS quantity,
+                SUM(total) AS order_value
+         FROM (
+             SELECT o.id, o.status, o.total, COALESCE(SUM(oi.quantity), 0) AS item_quantity
+             FROM orders o
+             LEFT JOIN order_items oi ON oi.order_id = o.id
+             WHERE o.created_at >= '$report_date 00:00:00'
+                 AND o.created_at <= '$report_date 23:59:59'
+             GROUP BY o.id, o.status, o.total
+         ) AS order_totals
+         GROUP BY status"
+    );
+
+    // Product and category sales use the saved order price. Pending and cancelled
+    // orders appear in the status summary but are not counted as sales.
     $sales = $db->query(
         "SELECT o.id AS order_id, oi.product_id, oi.product_name, oi.price,
                 oi.quantity, oi.size, p.category
@@ -185,9 +219,32 @@ if (!admin_valid_date($report_date)) {
          ORDER BY oi.product_name, oi.product_id, oi.size"
     );
 
-    if (!$sales) {
+    if (!$status_summary || !$sales) {
         $report_error = 'The sales report could not be read. Please try again.';
     } else {
+        while ($status = $status_summary->fetch_assoc()) {
+            $status_name = $status['status'];
+            if (!isset($delivery_statuses[$status_name])) {
+                $delivery_statuses[$status_name] = array(
+                    'orders' => 0, 'quantity' => 0, 'order_value' => 0
+                );
+            }
+            $order_count = (int) $status['order_count'];
+            $quantity = (int) $status['quantity'];
+            $order_value = (int) str_replace('.', '', $status['order_value']);
+            $delivery_statuses[$status_name] = array(
+                'orders' => $order_count,
+                'quantity' => $quantity,
+                'order_value' => $order_value
+            );
+            if ($status_name == 'Confirmed' || $status_name == 'Shipped'
+                || $status_name == 'Delivered') {
+                $status_sales_orders += $order_count;
+                $status_sales_quantity += $quantity;
+                $status_sales_revenue += $order_value;
+            }
+        }
+
         while ($sale = $sales->fetch_assoc()) {
             $product_id = (int) $sale['product_id'];
             $size = (int) $sale['size'];
@@ -248,6 +305,7 @@ include 'includes/header.php';
 <nav class="admin-nav" aria-label="Admin sections">
     <a class="text-link" href="#prices">Product prices</a>
     <a class="text-link" href="#fulfilment">Order fulfilment</a>
+    <a class="text-link" href="#enquiries">Enquiry summary</a>
     <a class="text-link" href="#sales">Daily sales</a>
 </nav>
 
@@ -317,28 +375,30 @@ include 'includes/header.php';
             <table class="admin-table">
                 <caption>Orders and their current fulfilment status</caption>
                 <thead>
-                    <tr><th>Order</th><th>Customer</th><th>Placed</th><th>Total</th><th>Status</th><th>Next step</th></tr>
+                    <tr><th>Order</th><th>Customer</th><th>Placed</th><th>Total</th><th>Status</th><th>Status actions</th></tr>
                 </thead>
                 <tbody>
                     <?php while ($order = $orders->fetch_assoc()) { ?>
                         <tr>
-                            <td>#<?php echo $order['id']; ?></td>
                             <td>
-                                <?php echo e($order['name']); ?>
-                                <details>
-                                    <summary>Delivery details</summary>
-                                    <p><?php echo e($order['address']); ?><br>
-                                        Singapore <?php echo e($order['postal_code']); ?><br>
-                                        <?php echo e($order['phone']); ?><br>
-                                        <?php echo e($order['email']); ?></p>
-                                </details>
+                                <a class="text-link" href="admin-order.php?id=<?php echo $order['id']; ?>">
+                                    #<?php echo $order['id']; ?>
+                                </a>
                             </td>
+                            <td><?php echo e($order['name']); ?></td>
                             <td><?php echo e($order['created_at']); ?></td>
                             <td><?php echo money($order['total']); ?></td>
                             <td><?php echo e($order['status']); ?></td>
                             <td>
-                                <?php if ($order['status'] == 'Confirmed' || $order['status'] == 'Shipped') { ?>
-                                    <?php $next_status = $order['status'] == 'Confirmed' ? 'Shipped' : 'Delivered'; ?>
+                                <?php if ($order['status'] == 'Confirmed'
+                                    || $order['status'] == 'Shipped'
+                                    || $order['status'] == 'Delivered') { ?>
+                                    <?php
+                                    $next_status = $order['status'] == 'Confirmed' ? 'Shipped'
+                                        : ($order['status'] == 'Shipped' ? 'Delivered' : '');
+                                    $previous_status = $order['status'] == 'Delivered' ? 'Shipped'
+                                        : ($order['status'] == 'Shipped' ? 'Confirmed' : '');
+                                    ?>
                                     <form class="admin-status-form" action="admin.php#fulfilment" method="post">
                                         <input type="hidden" name="action" value="status">
                                         <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
@@ -346,10 +406,18 @@ include 'includes/header.php';
                                         <input type="hidden" name="report_date" value="<?php echo e($report_date); ?>">
                                         <input type="hidden" name="current_status"
                                                value="<?php echo e($order['status']); ?>">
-                                        <button class="button" type="submit" name="status"
-                                                value="<?php echo $next_status; ?>">
-                                            Mark <?php echo strtolower($next_status); ?>
-                                        </button>
+                                        <?php if ($next_status != '') { ?>
+                                            <button class="button" type="submit" name="status"
+                                                    value="<?php echo $next_status; ?>">
+                                                Mark <?php echo strtolower($next_status); ?>
+                                            </button>
+                                        <?php } ?>
+                                        <?php if ($previous_status != '') { ?>
+                                            <button class="button secondary" type="submit" name="status"
+                                                    value="<?php echo $previous_status; ?>">
+                                                Undo
+                                            </button>
+                                        <?php } ?>
                                     </form>
                                 <?php } elseif ($order['status'] == 'Pending') { ?>
                                     Awaiting customer review
@@ -361,8 +429,47 @@ include 'includes/header.php';
                     <?php } ?>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="6">Status updates send mail only to the permitted local project accounts.</td></tr>
+                    <tr><td colspan="6">Select an order number to view its products and categories. Forward status updates email permitted local project accounts; Undo does not send email.</td></tr>
                 </tfoot>
+            </table>
+        </div>
+    <?php } ?>
+</section>
+
+<section class="panel admin-section" id="enquiries">
+    <h2>Enquiry summary</h2>
+    <?php if (!$enquiries) { ?>
+        <p class="error">Enquiries could not be read. Please reload this page.</p>
+    <?php } elseif ($enquiries->num_rows == 0) { ?>
+        <p>No enquiries have been received yet.</p>
+    <?php } else { ?>
+        <p><?php echo $enquiries->num_rows; ?> enquiries, newest first.</p>
+        <div class="table-scroll">
+            <table class="admin-table">
+                <caption>Customer enquiries received by the shop</caption>
+                <thead>
+                    <tr><th>Received</th><th>Name</th><th>Email</th><th>Topic and message</th></tr>
+                </thead>
+                <tbody>
+                    <?php while ($enquiry = $enquiries->fetch_assoc()) { ?>
+                        <tr>
+                            <td><?php echo e($enquiry['created_at']); ?></td>
+                            <td><?php echo e($enquiry['name']); ?></td>
+                            <td>
+                                <a class="text-link" href="mailto:<?php echo e($enquiry['email']); ?>">
+                                    <?php echo e($enquiry['email']); ?>
+                                </a>
+                            </td>
+                            <td>
+                                <strong><?php echo e($enquiry['subject']); ?></strong>
+                                <details>
+                                    <summary>Read message</summary>
+                                    <p><?php echo nl2br(e($enquiry['message'])); ?></p>
+                                </details>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
             </table>
         </div>
     <?php } ?>
@@ -373,22 +480,53 @@ include 'includes/header.php';
     <form class="admin-form" action="admin.php#sales" method="get">
         <input type="hidden" name="product_id" value="<?php echo e($selected_id); ?>">
         <label for="report-date">Order date</label>
-        <input type="date" id="report-date" name="report_date" min="1000-01-01" max="9999-12-31"
-               value="<?php echo e($report_date); ?>" required>
+        <input type="date" 
+                id="report-date" 
+                name="report_date" 
+                min="2020-01-01" 
+                max="<?php echo date('Y-m-d'); ?>"
+                value="<?php echo e($report_date); ?>" 
+                required>
         <button class="button" type="submit">Show report</button>
-    </form>
-    <p class="hint">Sales include Confirmed, Shipped and Delivered orders placed on the selected date.
-        Pending and Cancelled orders are excluded. Revenue uses each saved order price.</p>
+     </form>
+    <p class="hint">The summary includes every order status for the selected date. Only Confirmed,
+        Shipped and Delivered orders count as sales; Pending and Cancelled values are excluded.</p>
 
     <?php if ($report_error != '') { ?>
         <p class="error"><?php echo e($report_error); ?></p>
-    <?php } elseif (count($product_sales) == 0) { ?>
-        <p>No confirmed sales for <?php echo e($report_date); ?>.</p>
     <?php } else { ?>
-        <p><?php echo count($sales_orders); ?> orders &middot; <?php echo $total_quantity; ?> pairs &middot;
-            <?php echo money($total_revenue / 100); ?> revenue</p>
         <div class="table-scroll">
-            <table>
+            <table class="sales-report-table">
+                <caption>Total sales by delivery status for <?php echo e($report_date); ?></caption>
+                <thead>
+                    <tr><th>Delivery status</th><th>Orders</th><th>Pairs</th><th>Order value</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($delivery_statuses as $status => $summary) { ?>
+                        <tr>
+                            <td><?php echo e($status); ?></td>
+                            <td><?php echo $summary['orders']; ?></td>
+                            <td><?php echo $summary['quantity']; ?></td>
+                            <td><?php echo money($summary['order_value'] / 100); ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>Sales total</th>
+                        <td><?php echo $status_sales_orders; ?></td>
+                        <td><?php echo $status_sales_quantity; ?></td>
+                        <td><?php echo money($status_sales_revenue / 100); ?></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <?php if (count($product_sales) == 0) { ?>
+            <p>No confirmed sales for <?php echo e($report_date); ?>.</p>
+        <?php } else { ?>
+        <div class="table-scroll">
+            <table class="sales-report-table">
                 <caption>Sales by product for <?php echo e($report_date); ?></caption>
                 <thead><tr><th>Product</th><th>Pairs sold</th><th>Revenue</th></tr></thead>
                 <tbody>
@@ -407,7 +545,7 @@ include 'includes/header.php';
             </table>
         </div>
         <div class="table-scroll">
-            <table>
+            <table class="sales-report-table">
                 <caption>Sales by category for <?php echo e($report_date); ?></caption>
                 <thead><tr><th>Category</th><th>Pairs sold</th><th>Revenue</th></tr></thead>
                 <tbody>
@@ -430,7 +568,7 @@ include 'includes/header.php';
             has the highest revenue: <?php echo money($product_sales[$best_product_id]['revenue'] / 100); ?>.
             Its most popular size is EU <?php echo $popular_size; ?>
             (<?php echo $popular_size_quantity; ?> pairs).</p>
-        <p class="hint">Equal revenue is resolved by product number; equal size quantities use the smaller EU size.</p>
+        <?php } ?>
     <?php } ?>
 </section>
 

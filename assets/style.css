@@ -907,6 +907,41 @@ tfoot {
     min-width: 620px;
 }
 
+.sales-report-table {
+    width: 100%;
+    max-width: 760px;
+    margin: 16px auto;
+    border: 1px solid #d5d5cf;
+}
+
+.sales-report-table caption {
+    text-align: center;
+}
+
+.sales-report-table th,
+.sales-report-table td {
+    padding: 14px 12px;
+    border: 1px solid #dfdfd9;
+    text-align: center;
+}
+
+.sales-report-table th {
+    background: #252622;
+    color: #fff;
+}
+
+.sales-report-table tbody tr:nth-child(even) {
+    background: #faf9f6;
+}
+
+.sales-report-table tfoot th,
+.sales-report-table tfoot td {
+    background: #eeede7;
+    color: #252622;
+    font-weight: bold;
+}
+
+
 .admin-status-form {
     min-width: 150px;
 }
