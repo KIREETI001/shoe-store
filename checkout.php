@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $user['email'];
 
     if (!is_valid_name($name)) {
-        $errors[] = 'Enter a name of up to 100 letters and spaces, with at least one letter.';
+        $errors[] = 'Enter a name of up to 100 characters, with at least one letter.';
     }
 
     if (!is_valid_email($email)) {
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors[] = 'Please enter an 8-digit Singapore phone number.';
     }
 
-    if (trim($address) == '' || strlen($address) > 255) {
+    if (trim($address) == '' || text_length($address) > 255) {
         $errors[] = 'Please enter a delivery address of up to 255 characters.';
     }
 
@@ -136,6 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Validate the complete bag before the first stock or order write.
+    if (!hash_equals(cart_snapshot($items), post_value('cart_snapshot'))) {
+        $errors[] = 'Your bag or its prices changed after this checkout page was opened. Review the updated items and total below, then place your order again.';
+    }
     foreach ($items as $item) {
         if (!is_valid_quantity($item['quantity'])) {
             $errors[] = 'Please choose a quantity from 1 to 10 for each size in your bag.';
@@ -143,6 +146,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors[] = 'Sorry, only ' . $item['stock'] . ' pairs of '
                       . $item['name'] . ' in EU ' . $item['size']
                       . ' are left. Please update your bag.';
+        }
+    }
+
+    $transaction_started = false;
+    if (count($errors) == 0) {
+        $transaction_started = $db->begin_transaction();
+        $ids = array_map('intval', array_keys($_SESSION['cart']));
+        sort($ids);
+        $locked = $transaction_started ? $db->query("SELECT s.id FROM product_sizes s JOIN products p ON p.id = s.product_id
+            WHERE s.id IN (" . implode(',', $ids) . ") ORDER BY s.id FOR UPDATE") : false;
+        if (!$locked) {
+            $errors[] = 'The bag could not be locked. Please try again.';
+        } else {
+            $items = get_cart_items($db);
+            $total = 0;
+            foreach ($items as $item) $total += $item['subtotal'];
+            if (!hash_equals(cart_snapshot($items), post_value('cart_snapshot'))) {
+                $errors[] = 'Your bag or its prices changed. Review the updated total before placing your order again.';
+            }
+            if ($total > 999999.99) $errors[] = 'An order can total at most S$999,999.99.';
         }
     }
 
@@ -223,35 +246,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    if (count($errors) > 0 && count($reserved) > 0) {
-        // Best-effort recovery with taught queries. Separate writes are not atomic.
-        $restore_stock = true;
-
-        if ($order_id > 0) {
-            $removed_items = $db->query("DELETE FROM order_items WHERE order_id = $order_id");
-
-            if ($removed_items) {
-                $removed_order = $db->query("DELETE FROM orders
-                                             WHERE id = $order_id AND user_id = $user_id");
-                $restore_stock = $removed_order;
-            } else {
-                $restore_stock = false;
-            }
-        }
-
-        if ($restore_stock) {
-            foreach ($reserved as $size_id => $quantity) {
-                $restored = $db->query("UPDATE product_sizes
-                                        SET stock = stock + $quantity
-                                        WHERE id = $size_id");
-
-                if (!$restored || $db->affected_rows != 1) {
-                    $errors[] = 'Stock recovery was incomplete. Please contact the shop before retrying.';
-                    break;
-                }
-            }
-        } else {
-            $errors[] = 'Order recovery was incomplete. Please contact the shop before retrying.';
+    if ($transaction_started) {
+        if (count($errors) > 0) {
+            $db->rollback();
+        } elseif (!$db->commit()) {
+            $db->rollback();
+            $errors[] = 'The order could not be committed. Your bag has been kept.';
         }
     }
 
@@ -272,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             set_message('Your order is placed. Its acknowledgement was accepted by the local mail server.');
         } else {
             set_message('Your order is placed, but no acknowledgement email was accepted. '
-                      . 'Only the two approved local accounts may receive mail; check the account and Mercury setup.');
+                      . 'Only f32ee@localhost may receive test mail; check the account and Mercury setup.');
         }
 
         header('Location: order.php?id=' . $order_id);
@@ -280,6 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
+$checkout_snapshot = cart_snapshot($items);
 $page_title = 'Checkout';
 include 'includes/header.php';
 ?>
@@ -304,16 +305,18 @@ include 'includes/header.php';
 
 <div class="cart-layout">
     <form id="checkout-form" action="checkout.php" method="post">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="cart_snapshot" value="<?php echo e($checkout_snapshot); ?>">
         <input type="hidden" name="checkout_attempt"
                value="<?php echo e($attempt_prefix . $_SESSION['checkout_attempt']); ?>">
         <fieldset>
-            <legend>Delivery details</legend>
+            <legend>Delivery Details</legend>
             <label for="name">Full name <span class="required">*</span></label>
-            <input type="text" id="name" name="name" value="<?php echo e($name); ?>" maxlength="100" required>
+            <input type="text" id="name" name="name" value="<?php echo e($name); ?>" maxlength="200" required>
 
             <label for="email">Account email (local order acknowledgement) <span class="required">*</span></label>
             <input type="email" id="email" name="email" value="<?php echo e($email); ?>" readonly>
-            <p class="hint">Order email is sent only to f31ee@localhost or f32ee@localhost.</p>
+            <p class="hint">Order email is sent only to f32ee@localhost.</p>
 
             <label for="phone">Mobile number <span class="required">*</span> </label>
             <input type="tel" id="phone" name="phone" value="<?php echo e($phone); ?>"
@@ -321,7 +324,7 @@ include 'includes/header.php';
 
             <label for="address">Address <span class="required">*</span></label>
             <input type="text" id="address" name="address" value="<?php echo e($address); ?>"
-                   placeholder="Block, street, unit number" maxlength="255" required>
+                   placeholder="Block, street, unit number" maxlength="510" required>
 
             <label for="postal_code">Postal code <span class="required">*</span></label>
             <input type="text" id="postal_code" name="postal_code" value="<?php echo e($postal_code); ?>"
@@ -347,12 +350,12 @@ include 'includes/header.php';
                     Card details are never saved.
                 </p>
                 <label for="card_number">Card number <span class="required">*</span></label>
-                <input type="text" id="card_number" name="card_number"
+                <input type="text" id="card_number" name="card_number" inputmode="numeric"
                        placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="off">
                 <div class="two-columns">
                     <div>
                         <label for="card_expiry">Expiry (MM/YY) <span class="required">*</span></label>
-                        <input type="text" id="card_expiry" name="card_expiry"
+                        <input type="text" id="card_expiry" name="card_expiry" inputmode="numeric"
                                placeholder="08/28" maxlength="5" autocomplete="off">
                     </div>
                     <div>
@@ -367,13 +370,13 @@ include 'includes/header.php';
         <p id="checkout-error" class="error-text"></p>
         <button class="button wide" type="submit">Place order &ndash; <?php echo money($total); ?></button>
         <p class="hint">
-            After placing your order you can still check it and change sizes,
+            Stock is reserved for 30 minutes after placement. Confirm your order within that time. You can still check it and change sizes,
             quantities or your address before confirming.
         </p>
     </form>
 
     <aside class="summary">
-        <h2>Your order</h2>
+        <h2>Your Order</h2>
         <?php foreach ($items as $item) { ?>
             <div class="summary-item">
                 <img src="assets/images/<?php echo e($item['image']); ?>" alt="">
@@ -386,7 +389,7 @@ include 'includes/header.php';
         <?php } ?>
         <p>Delivery <span>Free</span></p>
         <p class="summary-total">Total <span><?php echo money($total); ?></span></p>
-        <a class="text-link" href="cart.php">Edit bag</a>
+        <a class="text-link" href="cart.php">Edit Bag</a>
     </aside>
 </div>
 

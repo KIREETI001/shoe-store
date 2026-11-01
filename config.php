@@ -14,22 +14,16 @@ $db_password = '';
 $db_name = 'restep';
 $db_port = 3306;
 
-// The two local Mercury accounts confirmed for this project team.
+// Test mail goes only to the customer mailbox; the admin is the sender.
 // Only these exact recipients may receive order mail. An empty array disables it.
-$allowed_mail_recipients = array(
-    'f31ee@localhost',
-    'f32ee@localhost'
-);
+$allowed_mail_recipients = array('f32ee@localhost');
 
-// Optional local sender. An empty value uses the matched permitted recipient.
-$shop_email = '';
+// One explicit admin sender; blank or unapproved senders disable sending.
+$shop_email = 'f31ee@localhost';
 
-// These team accounts can use Admin after signing in with their saved password.
+// Only f31ee is the administrator; f32ee is the customer test account.
 // This list controls access separately from permission to receive local mail.
-$admin_emails = array(
-    'f31ee@localhost',
-    'f32ee@localhost'
-);
+$admin_emails = array('f31ee@localhost');
 
 // Optional settings for this computer only (not included in the submission)
 if (file_exists(__DIR__ . '/config.local.php')) {

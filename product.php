@@ -2,20 +2,23 @@
 require_once 'includes/functions.php';
 require_valid_request();
 
-$product_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$product_id = valid_id(get_value('id')) ? (int) get_value('id') : 0;
 $product = $db->query("SELECT * FROM products WHERE id = $product_id")->fetch_assoc();
 
 if (!$product) {
-    $page_title = 'Shoe not found';
-    $heading = 'Sorry, we could not find that shoe.';
+    http_response_code(404);
+    $page_title = 'Shoe Not Found';
+    $heading = 'Sorry, We Could Not Find That Shoe.';
     $text = 'Have a look at the rest of our collection instead.';
     $link = 'products.php';
-    $link_text = 'Back to all shoes';
+    $link_text = 'Back To All Shoes';
     include 'includes/not-found.php';
     exit;
 }
 
 $sizes = get_sizes($db, $product_id);
+$has_stock = false;
+foreach ($sizes as $size) { if ($size['stock'] > 0) $has_stock = true; }
 
 // Up to four other shoes of the same activity for "You may also like"
 $activity = $db->real_escape_string($product['activity']);
@@ -26,7 +29,7 @@ include 'includes/header.php';
 ?>
 
 <p class="breadcrumb">
-    <a href="products.php">All shoes</a> /
+    <a href="products.php">All Shoes</a> /
     <a href="products.php?category=<?php echo e($product['category']); ?>"><?php echo e($product['category']); ?></a> /
     <?php echo e($product['name']); ?>
 </p>
@@ -44,10 +47,11 @@ include 'includes/header.php';
         <p><?php echo e($product['description']); ?></p>
 
         <form id="product-form" action="cart.php" method="post">
+        <?php echo csrf_field(); ?>
             <input type="hidden" name="action" value="add">
             <input type="hidden" id="unit-price" value="<?php echo $product['price']; ?>">
 
-            <p class="size-heading"><strong>Choose your size (EU)</strong> <a href="contact.php#size-guide">Size guide</a></p>
+            <p class="size-heading"><strong>Choose your size (EU)</strong> <a href="contact.php#size-guide">Size Guide</a></p>
             <div class="sizes">
                 <?php foreach ($sizes as $s) { ?>
                     <?php if ($s['stock'] > 0) { ?>
@@ -72,7 +76,7 @@ include 'includes/header.php';
             </div>
 
             <p id="product-error" class="error-text"></p>
-            <button class="button wide" type="submit">Add to bag</button>
+            <button class="button wide" type="submit" <?php if (!$has_stock) echo 'disabled'; ?>><?php echo $has_stock ? 'Add To Bag' : 'Sold Out'; ?></button>
         </form>
 
         <ul class="perks">
@@ -84,7 +88,7 @@ include 'includes/header.php';
 
 <?php if ($related->num_rows > 0) { ?>
 <section class="section">
-    <h2>You may also like</h2>
+    <h2>You May Also Like</h2>
     <div class="product-grid">
         <?php // The main shoe is not needed any more, so $product can now hold each related shoe ?>
         <?php while ($product = $related->fetch_assoc()) { ?>

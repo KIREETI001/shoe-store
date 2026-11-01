@@ -9,7 +9,7 @@ mysqli_report(MYSQLI_REPORT_OFF);
 
 if (mysqli_connect_errno()) {
 ?>
-    <h1>Sorry, the shop database is not available right now.</h1>
+    <h1>Sorry, The Shop Database Is Not Available Right Now.</h1>
     <p>Check that MySQL is running and that database/schema.sql and database/seed.sql have been imported.</p>
 <?php
     exit;

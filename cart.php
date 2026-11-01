@@ -8,6 +8,17 @@ $action = isset($_POST['action']) ? $_POST['action'] : '';
 $array_fields = $action === 'update' ? array('size', 'quantity') : array();
 require_valid_request($array_fields);
 
+// Destructive bag actions require the verified POST form.
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && (isset($_POST['remove']) || isset($_POST['empty']))) {
+    if (isset($_POST['empty'])) {
+        $_SESSION['cart'] = array();
+    } elseif (valid_id(post_value('remove'))) {
+        unset($_SESSION['cart'][(int) post_value('remove')]);
+        set_message('The item was removed from your bag.');
+    }
+    header('Location: cart.php'); exit;
+}
+
 // 1. Add a shoe from the product page
 if ($action == 'add') {
     $size_id = isset($_POST['size_id']) ? $_POST['size_id'] : '';
@@ -122,21 +133,7 @@ if ($action == 'update') {
         $_SESSION['cart'] = $new_cart;
         set_message('Your bag has been updated.');
     }
-    header('Location: cart.php');
-    exit;
-}
-
-// 3. Remove one item, or empty the whole bag (links use GET, like the lecture example)
-if (isset($_GET['remove'])) {
-    unset($_SESSION['cart'][(int) $_GET['remove']]);
-    set_message('The item was removed from your bag.');
-    header('Location: cart.php');
-    exit;
-}
-
-if (isset($_GET['empty'])) {
-    $_SESSION['cart'] = array();
-    header('Location: cart.php');
+    header('Location: ' . (count($problems) == 0 && isset($_POST['checkout']) ? 'checkout.php' : 'cart.php'));
     exit;
 }
 
@@ -147,23 +144,25 @@ foreach ($items as $item) {
     $total += $item['subtotal'];
 }
 
-$page_title = 'Your bag';
+$page_title = 'Your Bag';
 include 'includes/header.php';
 ?>
 
-<h1>Your bag</h1>
+<h1>Your Bag</h1>
 
 <?php if (count($items) == 0) { ?>
     <div class="empty">
-        <h2>Your bag is empty</h2>
+        <h2>Your Bag Is Empty</h2>
         <p>Find a pair you like and add it here.</p>
-        <a class="button" href="products.php">Start shopping</a>
+        <a class="button" href="products.php">Start Shopping</a>
     </div>
 <?php } else { ?>
 
 <div class="cart-layout">
     <form id="cart-form" class="cart-table" action="cart.php" method="post">
+        <?php echo csrf_field(); ?>
         <input type="hidden" name="action" value="update">
+        <button class="implicit-submit" type="submit" tabindex="-1" aria-hidden="true">Update Bag</button>
         <table>
             <tr>
                 <th>Shoe</th>
@@ -189,7 +188,7 @@ include 'includes/header.php';
                 <td>
                     <select name="size[<?php echo $item['size_id']; ?>]" aria-label="Size">
                         <?php foreach (get_sizes($db, $item['product_id']) as $s) { ?>
-                            <option value="<?php echo $s['id']; ?>"
+                            <option value="<?php echo $s['id']; ?>" data-stock="<?php echo (int) $s['stock']; ?>"
                                 <?php if ($s['id'] == $item['size_id']) echo 'selected'; ?>
                                 <?php if ($s['stock'] < 1) echo 'disabled'; ?>>
                                 <?php echo $s['size']; ?><?php if ($s['stock'] < 1) echo ' (sold out)'; ?>
@@ -205,18 +204,16 @@ include 'includes/header.php';
                 <td><?php echo money($item['price']); ?></td>
                 <td><strong><?php echo money($item['subtotal']); ?></strong></td>
                 <td>
-                    <a class="remove" href="cart.php?remove=<?php echo $item['size_id']; ?>"
-                        onclick="return confirm('Remove <?php
-                            echo e(addslashes($item['name']));
-                        ?> from your bag?');">Remove</a>
+                    <button class="remove link-button" type="submit" name="remove" value="<?php echo $item['size_id']; ?>"
+                        formnovalidate onclick="return confirm('Remove this shoe from your bag?');">Remove</button>
                 </td>
             </tr>
             <?php } ?>
         </table>
         <p class="cart-buttons">
             <button class="button secondary" type="submit">Update bag</button>
-            <a class="text-link" href="cart.php?empty=1"
-                onclick="return confirm('Remove everything from your bag?');">Empty bag</a>
+            <button class="link-button" type="submit" name="empty" value="1" formnovalidate
+                onclick="return confirm('Remove everything from your bag?');">Empty Bag</button>
         </p>
     </form>
 
@@ -225,8 +222,8 @@ include 'includes/header.php';
         <p>Items <span><?php echo cart_count(); ?></span></p>
         <p>Delivery <span>Free</span></p>
         <p class="summary-total">Total <span><?php echo money($total); ?></span></p>
-        <a class="button wide" href="checkout.php">Checkout</a>
-        <a class="text-link" href="products.php">Continue shopping</a>
+        <button class="button wide" type="submit" form="cart-form" name="checkout" value="1">Checkout</button>
+        <a class="text-link" href="products.php">Continue Shopping</a>
     </aside>
 </div>
 

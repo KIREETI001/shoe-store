@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/functions.php';
 require_valid_request();
-$page_title = 'Shop Restep';
+$page_title = 'Shop ReStep';
 
 // Count sold pairs across confirmed orders; pending reviews and cancellations do not count.
 $featured = $db->query(
@@ -15,11 +15,11 @@ $featured = $db->query(
      ORDER BY pairs_sold DESC, p.id
      LIMIT 4"
 );
-$popular_title = 'Popular right now';
+$popular_title = 'Popular Right Now';
 
 // A new shop has no sales yet. Do not present a fixed selection as popularity.
 if (!$featured || $featured->num_rows == 0) {
-    $popular_title = 'Featured shoes';
+    $popular_title = 'Featured Shoes';
     $featured = $db->query('SELECT * FROM products ORDER BY id LIMIT 4');
 }
 
@@ -33,9 +33,9 @@ include 'includes/header.php';
 <section class="hero">
     <div class="hero-text">
         <p class="eyebrow">THE RESTEP COLLECTION</p>
-        <h1>Make your next move.</h1>
+        <h1>Make Your Next Move.</h1>
         <p>Running shoes, court shoes, loafers and boots &ndash; we have them all in one place.</p>
-        <a class="button" href="products.php">Shop all shoes</a>
+        <a class="button" href="products.php">Shop All Shoes</a>
     </div>
     <?php if ($hero) { ?>
         <a class="hero-image" href="product.php?id=<?php echo $hero['id']; ?>">
@@ -47,15 +47,15 @@ include 'includes/header.php';
 </section>
 
 <section class="section">
-    <h2>Shop by collection</h2>
+    <h2>Shop By Collection</h2>
     <div class="collections">
         <a class="collection" href="products.php?category=Sport">
             <img src="assets/images/001_sports_road-running-mesh_white-and-cobalt.jpg" alt="White and cobalt running shoe">
-            <span><strong>Sport</strong> Running, court, training and outdoor</span>
+            <span><strong>Sport</strong> Running, Court, Training And Outdoor</span>
         </a>
         <a class="collection" href="products.php?category=Lifestyle">
             <img src="assets/images/032_lifestyle_suede-terrace_tan-and-cream.jpg" alt="Tan and cream suede shoe">
-            <span><strong>Lifestyle</strong> Sneakers, loafers, flats and boots</span>
+            <span><strong>Lifestyle</strong> Sneakers, Loafers, Flats And Boots</span>
         </a>
     </div>
 </section>
@@ -71,20 +71,20 @@ include 'includes/header.php';
     <?php } else { ?>
         <p>No shoes are available to display right now.</p>
     <?php } ?>
-    <p><a class="text-link" href="products.php">See all shoes &rarr;</a></p>
+    <p><a class="text-link" href="products.php">See All Shoes &rarr;</a></p>
 </section>
 
 <section class="why">
     <div>
-        <h3>Find your fit</h3>
+        <h3>Find Your Fit</h3>
         <p>Filter by size and see straight away which sizes are in stock.</p>
     </div>
     <div>
-        <h3>Check before it ships</h3>
+        <h3>Check Before It Ships</h3>
         <p>After ordering you get an email with a link to review your order and make last changes.</p>
     </div>
     <div>
-        <h3>Free delivery</h3>
+        <h3>Free Delivery</h3>
         <p>Every order is delivered free anywhere in Singapore.</p>
     </div>
 </section>
@@ -94,12 +94,12 @@ include 'includes/header.php';
          alt="Cream and burgundy ReStep Retro shoe">
     <div>
         <p class="eyebrow">OUR STORY</p>
-        <h2>For the way you move.</h2>
+        <h2>For The Way You Move.</h2>
         <p>ReStep brings sport and lifestyle shoes together in one place. Morning runs, court sessions,
            the office and the weekend &ndash; your day does not stay in one lane, and your shoes should not either.</p>
         <p>We keep shopping simple: filter by the size you need, see what is in stock, and check your
            order again after you pay so you know it is exactly right before it ships.</p>
-        <a class="button" href="products.php">Browse the collection</a>
+        <a class="button" href="products.php">Browse The Collection</a>
     </div>
 </section>
 

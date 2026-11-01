@@ -53,17 +53,40 @@ function get_value($key, $default = '') {
     return $_GET[$key];
 }
 
+// Count Unicode characters consistently with Array.from() in JavaScript.
+function text_length($value) {
+    $count = preg_match_all('/./us', $value, $matches);
+    return $count === false ? PHP_INT_MAX : $count;
+}
+
 function is_valid_name($value) {
-    return !is_array_value($value) && strlen($value) <= 100
-        && preg_match('/[a-zA-Z]/', $value) == 1
-        && preg_match('/[^a-zA-Z ]/', $value) == 0;
+    return !is_array_value($value) && text_length($value) <= 100
+        && preg_match('/\p{L}/u', $value) == 1
+        && preg_match("/[^\p{L}\p{M} '\x{2019}-]/u", $value) == 0;
 }
 
 function is_valid_email($value) {
-    // CS04 username/domain rules, plus localhost for local Mercury mail.
-    return !is_array_value($value) && strlen($value) <= 150
-        && preg_match('/^[\w.-]+@((\w+\.){1,3}\w{2,3}|localhost)$/', $value) == 1
-        && preg_match('/\s/', $value) == 0;
+    if (is_array_value($value) || strlen($value) > 150) return false;
+    $pattern = <<<'EMAIL'
+/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~\-]+@(?:localhost|(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/D
+EMAIL;
+    $local = explode('@', $value)[0];
+    return preg_match($pattern, $value) == 1 && $local !== ''
+        && $local[0] != '.' && substr($local, -1) != '.' && strpos($local, '..') === false;
+}
+
+function valid_id($value) {
+    return is_string($value) && preg_match('/^[1-9][0-9]{0,9}$/D', $value) == 1;
+}
+
+function hash_shop_password($password) {
+    return 'sha256:' . password_hash(hash('sha256', $password), PASSWORD_DEFAULT);
+}
+
+function verify_shop_password($password, $hash) {
+    if (strpos($hash, 'sha256:') === 0) return password_verify(hash('sha256', $password), substr($hash, 7));
+    // Preserve the original byte limit for legacy bcrypt hashes to prevent truncation aliases.
+    return strlen($password) <= 72 && password_verify($password, $hash);
 }
 
 function is_valid_phone($value) {

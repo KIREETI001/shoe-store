@@ -454,7 +454,7 @@ main {
 /* ---------- Forms ---------- */
 label {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     margin: 12px 0 5px;
 }
@@ -549,7 +549,7 @@ legend {
 .error-text {
     color: #912b1d;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     min-height: 1em;
 }
 
@@ -1174,4 +1174,64 @@ tfoot {
 .required {
     color: #ff0000; /* Turns the asterisk bright red */
     margin-left: 2px;
+}
+
+/* Shared content roles and field-level validation feedback. */
+h3 { font-size: 22px; }
+button, input, select, textarea { font-family: inherit; }
+.text-link { font-size: inherit; }
+.field-error {
+    display: block;
+    color: #a52b16;
+    font-size: 13px;
+    font-weight: normal;
+    line-height: 1.5;
+    margin-top: 4px;
+    white-space: normal;
+}
+.field-error[hidden] { display: none; }
+[aria-invalid="true"] { border-color: #a52b16; }
+.help-section { max-width: 800px; margin-left: auto; margin-right: auto; }
+
+.admin-nav { font-size: 14px; }
+
+/* HELP uses one aligned column and a consistent section rhythm. */
+.help-page { max-width: 960px; margin: 0 auto; }
+.help-page > h1 { margin-bottom: 16px; }
+.help-page > p { margin: 0 0 40px; }
+.help-page > section { max-width: none; margin: 0; padding: 0; }
+.help-page > section + section { margin-top: 48px; padding-top: 32px; border-top: 1px solid #dfdfd9; }
+.help-page h2 { font-size: 26px; margin: 0 0 20px; }
+.help-page h3 { font-size: 22px; margin: 28px 0 12px; }
+.help-page .faq details { padding: 14px 0; }
+.help-page .size-table-container { max-width: none; margin: 24px 0 0; }
+.help-page .size-table { font-size: 15px; min-width: 540px; }
+.help-page .size-table th { font-size: 12px; padding: 12px; }
+.help-page .size-table td { padding: 12px; }
+.help-page .summary h2 { font-size: 22px; }
+.header-search { display: flex; gap: 8px; align-items: center; }
+.header-search input { min-width: 0; }
+.inline-form { display: inline; margin: 0; }
+.account-greeting { display: flex; align-items: baseline; gap: 8px; }
+.quantity-row { flex-wrap: wrap; }
+.quantity-row .field-error { flex-basis: 100%; order: 1; }
+button:disabled { cursor: not-allowed; opacity: .6; }
+@media (max-width: 600px) {
+    .help-page > section + section { margin-top: 32px; padding-top: 24px; }
+    .help-page > p { margin-bottom: 28px; }
+    .help-page h2 { font-size: 24px; }
+    .help-page h3 { font-size: 20px; }
+    .header-search input { flex: 1; width: auto; }
+}
+
+/* Safe default for Enter in bag/order inputs; visible controls remain unchanged. */
+.implicit-submit {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
 }

@@ -5,13 +5,22 @@ require_valid_request();
 // Read the filter values from the URL (the filter form uses method="get")
 $search   = isset($_GET['search'])   ? trim($_GET['search'])   : '';
 $category = isset($_GET['category']) ? $_GET['category']       : '';
-$activity = isset($_GET['activity']) ? $_GET['activity']       : '';
-$size     = isset($_GET['size'])     ? (int) $_GET['size']     : 0;
-$max      = isset($_GET['max'])      ? (int) $_GET['max']      : 0;
-$sort     = isset($_GET['sort'])     ? $_GET['sort']           : 'featured';
+$raw_size = get_value('size');
+$raw_max = get_value('max');
+$size = in_array($raw_size, array_map('strval', range(36, 46)), true) ? (int) $raw_size : 0;
+$max = in_array($raw_max, array('100', '120', '150', '180'), true) ? (int) $raw_max : 0;
+$sort = get_value('sort', 'featured');
+if (!in_array($sort, array('featured', 'price-low', 'price-high', 'name'), true)) $sort = 'featured';
 
 // Build the SQL query one condition at a time
-$query = "SELECT * FROM products WHERE 1 = 1";
+$query = "SELECT products.* FROM products";
+if ($category == 'Popular') {
+    $query .= " JOIN (SELECT oi.product_id, SUM(oi.quantity) AS pairs_sold
+                 FROM order_items oi JOIN orders o ON o.id = oi.order_id
+                 WHERE o.status IN ('Confirmed', 'Shipped', 'Delivered')
+                 GROUP BY oi.product_id) sales ON sales.product_id = products.id";
+}
+$query .= " WHERE 1 = 1";
 
 if ($search != '') {
     $safe = $db->real_escape_string($search);
@@ -19,12 +28,8 @@ if ($search != '') {
 }
 if ($category == 'Sport' || $category == 'Lifestyle') {
     $query .= " AND category = '$category'";
-} else {
+} elseif ($category != 'Popular') {
     $category = '';
-}
-if ($activity != '') {
-    $safe = $db->real_escape_string($activity);
-    $query .= " AND activity = '$safe'";
 }
 if ($size > 0) {
     // Only shoes that still have this size in stock
@@ -41,25 +46,18 @@ if ($sort == 'price-low') {
 } elseif ($sort == 'name') {
     $query .= " ORDER BY name ASC";
 } else {
-    $query .= " ORDER BY id";
+    $query .= $category == 'Popular' ? " ORDER BY pairs_sold DESC, products.id" : " ORDER BY products.id";
 }
 
 $result = $db->query($query);
 $num_results = $result->num_rows;
 
-// Activities for the drop-down list (only those in the chosen collection)
-$activity_query = "SELECT DISTINCT activity FROM products";
-if ($category != '') {
-    $activity_query .= " WHERE category = '$category'";
-}
-$activities = $db->query($activity_query . " ORDER BY activity");
-
 if ($search != '') {
-    $page_title = 'Search results';
+    $page_title = 'Search Results';
 } elseif ($category != '') {
-    $page_title = $category . ' shoes';
+    $page_title = $category . ' Shoes';
 } else {
-    $page_title = 'All shoes';
+    $page_title = 'All Shoes';
 }
 
 include 'includes/header.php';
@@ -75,29 +73,22 @@ include 'includes/header.php';
 
 <div class="shop-layout">
     <details class="filters" id="filter-box" open>
-        <summary>Filter and sort</summary>
+        <summary>Filter And Sort</summary>
         <!-- Changing any drop-down submits the form straight away -->
         <form action="products.php" method="get">
             <label for="search">Search</label>
             <input type="search" id="search" name="search" value="<?php echo e($search); ?>" placeholder="Name, colour or activity">
 
             <label for="category">Collection</label>
-            <select id="category" name="category" onchange="this.form.activity.value = ''; this.form.submit()">
+            <select id="category" name="category" onchange="this.form.requestSubmit()">
                 <option value="">All</option>
                 <option <?php if ($category == 'Sport') echo 'selected'; ?>>Sport</option>
                 <option <?php if ($category == 'Lifestyle') echo 'selected'; ?>>Lifestyle</option>
-            </select>
-
-            <label for="activity">Activity / style</label>
-            <select id="activity" name="activity" onchange="this.form.submit()">
-                <option value="">All</option>
-                <?php while ($row = $activities->fetch_assoc()) { ?>
-                    <option <?php if ($activity == $row['activity']) echo 'selected'; ?>><?php echo e($row['activity']); ?></option>
-                <?php } ?>
+                <option <?php if ($category == 'Popular') echo 'selected'; ?>>Popular</option>
             </select>
 
             <label for="size">Size in stock (EU)</label>
-            <select id="size" name="size" onchange="this.form.submit()">
+            <select id="size" name="size" onchange="this.form.requestSubmit()">
                 <option value="">Any size</option>
                 <?php for ($i = 36; $i <= 46; $i++) { ?>
                     <option value="<?php echo $i; ?>" <?php if ($size == $i) echo 'selected'; ?>>EU <?php echo $i; ?></option>
@@ -105,7 +96,7 @@ include 'includes/header.php';
             </select>
 
             <label for="max">Maximum price</label>
-            <select id="max" name="max" onchange="this.form.submit()">
+            <select id="max" name="max" onchange="this.form.requestSubmit()">
                 <option value="">Any price</option>
                 <?php foreach (array(100, 120, 150, 180) as $price) { ?>
                     <option value="<?php echo $price; ?>" <?php if ($max == $price) echo 'selected'; ?>>Up to S$<?php echo $price; ?></option>
@@ -113,7 +104,7 @@ include 'includes/header.php';
             </select>
 
             <label for="sort">Sort by</label>
-            <select id="sort" name="sort" onchange="this.form.submit()">
+            <select id="sort" name="sort" onchange="this.form.requestSubmit()">
                 <option value="featured">Featured</option>
                 <option value="price-low" <?php if ($sort == 'price-low') echo 'selected'; ?>>Price: low to high</option>
                 <option value="price-high" <?php if ($sort == 'price-high') echo 'selected'; ?>>Price: high to low</option>
@@ -121,7 +112,7 @@ include 'includes/header.php';
             </select>
 
             <button class="button" type="submit">Apply</button>
-            <a class="text-link" href="products.php">Clear all filters</a>
+            <a class="text-link" href="products.php">Clear All Filters</a>
         </form>
     </details>
     <script>
@@ -136,9 +127,9 @@ include 'includes/header.php';
 
         <?php if ($num_results == 0) { ?>
             <div class="empty">
-                <h2>No shoes match your filters</h2>
+                <h2>No Shoes Match Your Filters</h2>
                 <p>Try a different size, a higher price or a shorter search word.</p>
-                <a class="button" href="products.php">Show all shoes</a>
+                <a class="button" href="products.php">Show All Shoes</a>
             </div>
         <?php } else { ?>
             <div class="product-grid">

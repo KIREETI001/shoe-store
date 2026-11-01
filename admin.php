@@ -5,12 +5,13 @@ require_login('admin.php');
 require_valid_request();
 
 if (!is_admin_user($db)) {
-    $page_title = 'Admin access';
+    http_response_code(403);
+    $page_title = 'Admin Access';
     include 'includes/header.php';
     ?>
-    <h1>Admin access</h1>
+    <h1>Admin Access</h1>
     <p>This page is available only to the configured shop administrators.</p>
-    <p><a class="text-link" href="account.php">Return to my account</a></p>
+    <p><a class="text-link" href="account.php">Return To My Account</a></p>
     <?php
     include 'includes/footer.php';
     exit;
@@ -25,7 +26,7 @@ function admin_valid_date($value) {
     $year = (int) substr($value, 0, 4);
     $month = (int) substr($value, 5, 2);
     $day = (int) substr($value, 8, 2);
-    if ($year < 1000 || $month < 1 || $month > 12) {
+    if ($value < '2020-01-01' || $value > date('Y-m-d') || $month < 1 || $month > 12) {
         return false;
     }
 
@@ -297,16 +298,16 @@ if (!admin_valid_date($report_date)) {
     }
 }
 
-$page_title = 'Shop admin';
+$page_title = 'Shop Admin';
 include 'includes/header.php';
 ?>
 
-<h1>Shop admin</h1>
+<h1>Shop Admin</h1>
 <nav class="admin-nav" aria-label="Admin sections">
-    <a class="text-link" href="#prices">Product prices</a>
-    <a class="text-link" href="#fulfilment">Order fulfilment</a>
-    <a class="text-link" href="#enquiries">Enquiry summary</a>
-    <a class="text-link" href="#sales">Daily sales</a>
+    <a class="text-link" href="#prices">Product Prices</a>
+    <a class="text-link" href="#fulfilment">Order Fulfilment</a>
+    <a class="text-link" href="#enquiries">Enquiry Summary</a>
+    <a class="text-link" href="#sales">Daily Sales</a>
 </nav>
 
 <?php if ($error != '') { ?>
@@ -314,7 +315,7 @@ include 'includes/header.php';
 <?php } ?>
 
 <section class="panel admin-section" id="prices">
-    <h2>Product prices</h2>
+    <h2>Product Prices</h2>
     <p>Choose a shoe, then enter its new price. Existing orders keep the price agreed at checkout.</p>
     <?php if ($product_error) { ?>
         <p class="error">The products could not be read. Please reload this page.</p>
@@ -343,6 +344,7 @@ include 'includes/header.php';
                     <h3><?php echo e($selected_product['name']); ?></h3>
                     <p>Current price: <strong><?php echo money($selected_product['price']); ?></strong></p>
                     <form id="admin-price-form" class="admin-form" action="admin.php#prices" method="post">
+        <?php echo csrf_field(); ?>
                         <input type="hidden" name="action" value="price">
                         <input type="hidden" name="product_id"
                                value="<?php echo $selected_product['id']; ?>">
@@ -364,7 +366,7 @@ include 'includes/header.php';
 </section>
 
 <section class="panel admin-section" id="fulfilment">
-    <h2>Order fulfilment</h2>
+    <h2>Order Fulfilment</h2>
     <p>Customers confirm their own Pending orders. Admin can then mark them Shipped and Delivered.</p>
     <?php if (!$orders) { ?>
         <p class="error">The orders could not be read. Please reload this page.</p>
@@ -400,6 +402,7 @@ include 'includes/header.php';
                                         : ($order['status'] == 'Shipped' ? 'Confirmed' : '');
                                     ?>
                                     <form class="admin-status-form" action="admin.php#fulfilment" method="post">
+        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="action" value="status">
                                         <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
                                         <input type="hidden" name="product_id" value="<?php echo e($selected_id); ?>">
@@ -437,7 +440,7 @@ include 'includes/header.php';
 </section>
 
 <section class="panel admin-section" id="enquiries">
-    <h2>Enquiry summary</h2>
+    <h2>Enquiry Summary</h2>
     <?php if (!$enquiries) { ?>
         <p class="error">Enquiries could not be read. Please reload this page.</p>
     <?php } elseif ($enquiries->num_rows == 0) { ?>
@@ -476,7 +479,7 @@ include 'includes/header.php';
 </section>
 
 <section class="panel admin-section" id="sales">
-    <h2>Daily sales</h2>
+    <h2>Daily Sales</h2>
     <form class="admin-form" action="admin.php#sales" method="get">
         <input type="hidden" name="product_id" value="<?php echo e($selected_id); ?>">
         <label for="report-date">Order date</label>
@@ -563,7 +566,7 @@ include 'includes/header.php';
                 </tfoot>
             </table>
         </div>
-        <h3>Best-selling product</h3>
+        <h3>Best-Selling Product</h3>
         <p><strong><?php echo e($product_sales[$best_product_id]['name']); ?></strong>
             has the highest revenue: <?php echo money($product_sales[$best_product_id]['revenue'] / 100); ?>.
             Its most popular size is EU <?php echo $popular_size; ?>

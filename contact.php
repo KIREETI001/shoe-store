@@ -12,7 +12,7 @@ $topics = array('Sizing and fit', 'My order', 'Delivery', 'Something else');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = isset($_POST['name']) ? $_POST['name'] : '';
-    $email = isset($_POST['email']) ? $_POST['email'] : '';
+    $email = trim(isset($_POST['email']) ? $_POST['email'] : '');
     $subject = isset($_POST['subject']) ? $_POST['subject'] : '';
     $message = isset($_POST['message']) ? $_POST['message'] : '';
     $valid_topic = false;
@@ -23,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (!is_valid_name($name)) {
-        $error = 'Please enter a name using letters and spaces, up to 100 characters.';
+        $error = 'Please enter a name using letters, spaces, apostrophes or hyphens, up to 100 characters.';
     } elseif (!is_valid_email($email)) {
         $error = 'Please enter a valid email address, up to 150 characters.';
     } elseif (!$valid_topic) {
         $error = 'Please choose a listed topic.';
-    } elseif (preg_match('/\S/', $message) != 1 || strlen($message) > 5000) {
+    } elseif (preg_match('/\S/', $message) != 1 || text_length($message) > 5000) {
         $error = 'Please enter a message, up to 5000 characters.';
     } else {
         $s_name = $db->real_escape_string($name);
@@ -56,66 +56,57 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST' && isset($_SESSION['user_id'])) {
     $email = $user['email'];
 }
 
-$page_title = 'Contact & help';
+$page_title = 'HELP';
 include 'includes/header.php';
 ?>
 
-<h1>Contact &amp; help</h1>
+<div class="help-page">
+<h1>HELP</h1>
 <p>Questions about sizes, an order or anything else? Send us a message.</p>
 
-<div class="cart-layout contact-layout">
-    <form id="contact-form" class="panel" action="contact.php" method="post">
-        <?php if ($error != '') { ?>
-            <p class="error"><?php echo e($error); ?></p>
-        <?php } ?>
-        <label for="contact-name">Name</label>
-        <input type="text" id="contact-name" name="name" value="<?php echo e($name); ?>" maxlength="100" required>
-
-        <label for="contact-email">Email</label>
-        <input type="email" id="contact-email" name="email" value="<?php echo e($email); ?>" maxlength="150" required>
-
-        <label for="contact-subject">Subject</label>
-        <select id="contact-subject" name="subject" required>
-            <option value="">Choose a topic</option>
-            <?php foreach ($topics as $topic) { ?>
-                <option <?php if ($subject == $topic) echo 'selected'; ?>><?php echo $topic; ?></option>
-            <?php } ?>
-        </select>
-
-        <label for="contact-message">Message</label>
-        <textarea id="contact-message" name="message" rows="6"
-                  maxlength="5000" required><?php echo e($message); ?></textarea>
-
-        <p id="contact-error" class="error-text"></p>
-        <button class="button" type="submit">Send message</button>
-    </form>
-
-    <aside class="summary">
-        <img class="help-photo" src="assets/images/032_lifestyle_suede-terrace_tan-and-cream.jpg"
-             alt="Tan and cream ReStep shoe shown side-on for the sizing and fit guide" width="280" height="280">
-        <h2>Quick help</h2>
-        <p><a class="text-link" href="contact.php#size-guide">Size guide</a></p>
-        <p><a class="text-link" href="account.php#orders">Check or change an order</a></p>
-        <p><a class="text-link" href="contact.php#help">Frequently asked questions</a></p>
-        <p class="hint">We reply Monday to Friday, 9am to 6pm.</p>
-    </aside>
-</div>
-
 <section class="faq section" id="help">
-    <h2>Help &amp; Size Guide</h2>
+    <h2>FAQ</h2>
     <h3>Shopping</h3>
     <details>
-        <summary>How do I find the right pair?</summary>
-        <p>Choose Sport or Lifestyle, then use the filters on the left to pick an activity, your size and a price.
-           Only shoes that have your size in stock are shown.</p>
+        <summary>How Do I Find The Right Pair?</summary>
+        <p>Choose Sport, Lifestyle or Popular, then filter by your size and a price.
+           Popular shows purchased shoes ranked by pairs sold. Selecting a size shows only shoes with that size in stock.</p>
     </details>
     <details>
-        <summary>Do I need an account?</summary>
+        <summary>Do I Need An Account?</summary>
         <p>You can browse and fill your bag without one. You sign in or create an account at checkout so we can
            send you your order and you can find it again later.</p>
     </details>
 
-    <h3 id="size-guide">Size Guide</h3>
+    <h3 id="delivery">Orders</h3>
+    <details>
+        <summary>What Happens After I Place An Order?</summary>
+        <p>Your order reserves stock for 30 minutes. Confirm it within that time; otherwise it is cancelled and the stock is released. You get an email with your order and a link to check it. On that page you can still change sizes,
+           quantities or your address, or remove a shoe. When everything looks right, press <em>Confirm
+           order</em>. You also get an email after every change.</p>
+    </details>
+    <details>
+        <summary>Can I Change My Order After Confirming It?</summary>
+        <p>No. Once confirmed, the order is packed for delivery. Please <a href="contact.php#contact-us">Contact Us</a> if
+           something is wrong.</p>
+    </details>
+    <details>
+        <summary>How Long Does Delivery Take?</summary>
+        <p>Delivery is free anywhere in Singapore and takes 3 to 5 working days after you confirm your order.</p>
+    </details>
+    <details>
+        <summary>Can I Return Shoes?</summary>
+        <p>Yes, unworn shoes can be returned within 30 days. <a href="contact.php#contact-us">Send Us A Message</a> with your
+           order number.</p>
+    </details>
+    <details>
+        <summary>Which Payment Methods Can I Use?</summary>
+        <p>Credit or debit card, or cash on delivery.</p>
+    </details>
+</section>
+
+<section class="help-section section" id="size-guide">
+    <h2>Size Guide</h2>
     <p>All our shoes use EU sizes. Measure your foot from heel to longest toe while standing, then find your size
        below. If you are between sizes, choose the bigger one.</p>
 
@@ -151,31 +142,50 @@ include 'includes/header.php';
         </table>
     </div>
 
-    <h3 id="delivery">Orders, delivery &amp; returns</h3>
-    <details>
-        <summary>What happens after I place an order?</summary>
-        <p>You get an email with your order and a link to check it. On that page you can still change sizes,
-           quantities or your address, or remove a shoe. When everything looks right, press <em>Confirm
-           order</em>. You also get an email after every change.</p>
-    </details>
-    <details>
-        <summary>Can I change my order after confirming it?</summary>
-        <p>No. Once confirmed, the order is packed for delivery. Please <a href="contact.php">contact us</a> if
-           something is wrong.</p>
-    </details>
-    <details>
-        <summary>How long does delivery take?</summary>
-        <p>Delivery is free anywhere in Singapore and takes 3 to 5 working days after you confirm your order.</p>
-    </details>
-    <details>
-        <summary>Can I return shoes?</summary>
-        <p>Yes, unworn shoes can be returned within 30 days. <a href="contact.php">Send us a message</a> with your
-           order number.</p>
-    </details>
-    <details>
-        <summary>Which payment methods can I use?</summary>
-        <p>Credit or debit card, or cash on delivery.</p>
-    </details>
 </section>
 
+<section class="section" id="contact-us">
+<h2>Contact Us</h2>
+<div class="cart-layout contact-layout">
+    <form id="contact-form" class="panel" action="contact.php#contact-us" method="post">
+        <?php echo csrf_field(); ?>
+        <?php if ($error != '') { ?>
+            <p class="error"><?php echo e($error); ?></p>
+        <?php } ?>
+        <label for="contact-name">Name</label>
+        <input type="text" id="contact-name" name="name" value="<?php echo e($name); ?>" maxlength="200" required>
+
+        <label for="contact-email">Email</label>
+        <input type="email" id="contact-email" name="email" value="<?php echo e($email); ?>" maxlength="150" required>
+
+        <label for="contact-subject">Subject</label>
+        <select id="contact-subject" name="subject" required>
+            <option value="">Choose a topic</option>
+            <?php foreach ($topics as $topic) { ?>
+                <option <?php if ($subject == $topic) echo 'selected'; ?>><?php echo $topic; ?></option>
+            <?php } ?>
+        </select>
+
+        <label for="contact-message">Message</label>
+        <textarea id="contact-message" name="message" rows="6"
+                  maxlength="10000" required><?php echo e($message); ?></textarea>
+
+        <p id="contact-error" class="error-text"></p>
+        <button class="button" type="submit">Send message</button>
+    </form>
+
+    <aside class="summary">
+        <img class="help-photo" src="assets/images/032_lifestyle_suede-terrace_tan-and-cream.jpg"
+             alt="Tan and cream ReStep shoe shown side-on for the sizing and fit guide" width="280" height="280">
+        <h2>Quick Help</h2>
+        <p><a class="text-link" href="contact.php#size-guide">Size Guide</a></p>
+        <p><a class="text-link" href="account.php#orders">Check Or Change An Order</a></p>
+        <p><a class="text-link" href="contact.php#help">Frequently Asked Questions</a></p>
+        <p class="hint">We reply Monday to Friday, 9am to 6pm.</p>
+    </aside>
+</div>
+
+</section>
+
+</div>
 <?php include 'includes/footer.php'; ?>

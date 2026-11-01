@@ -1,6 +1,65 @@
 <?php
 // Pending-order actions use the signed-in owner and check every required write.
-// Separate queries are not atomic. Recovery below is best effort if a later query fails.
+// Public actions lock the owned order and commit all stock/item/header writes together.
+
+function order_snapshot($db, $order_id) {
+    $order_id = (int) $order_id;
+    $header = $db->query("SELECT id, status, phone, address, postal_code, total FROM orders WHERE id = $order_id");
+    $order = $header ? $header->fetch_assoc() : false;
+    $items = $db->query("SELECT id, product_id, size_id, size, price, quantity FROM order_items WHERE order_id = $order_id ORDER BY id");
+    if (!$order || !$items) throw new Exception('The current order could not be read.');
+    return hash_hmac('sha256', json_encode(array($order, $items->fetch_all(MYSQLI_ASSOC))), csrf_token());
+}
+
+function atomic_order_action($db, $order_id, $action, $argument = null, $expected_snapshot = null) {
+    $order_id = (int) $order_id;
+    $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+    if (!$db->begin_transaction()) return array('errors' => array('Please try again; the order could not be locked.'), 'changed' => false, 'mail_sent' => null);
+    $GLOBALS['order_mail_queue'] = array();
+    try {
+        $locked = $db->query("SELECT id FROM orders WHERE id = $order_id AND user_id = $user_id FOR UPDATE");
+        if (!$locked || !$locked->fetch_assoc()) throw new Exception('This order is not available.');
+        if ($expected_snapshot !== null && !hash_equals(order_snapshot($db, $order_id), $expected_snapshot)) {
+            $db->rollback();
+            unset($GLOBALS['order_mail_queue']);
+            return array('errors' => array('This order changed in another tab or session. Reload the latest order before making more changes. Your submission was not saved.'), 'changed' => false, 'mail_sent' => null);
+        }
+        $sizes = $db->query("SELECT id FROM product_sizes WHERE product_id IN
+            (SELECT product_id FROM order_items WHERE order_id = $order_id) ORDER BY id FOR UPDATE");
+        if (!$sizes) throw new Exception('The order stock could not be locked.');
+        $result = $action($db, $order_id, $argument);
+        if (count($result['errors']) > 0) {
+            $db->rollback();
+        } elseif (!$db->commit()) {
+            throw new Exception('The order could not be saved. Please try again.');
+        }
+        $mail = $GLOBALS['order_mail_queue'];
+        unset($GLOBALS['order_mail_queue']);
+        if (count($result['errors']) == 0) {
+            foreach ($mail as $message) $result['mail_sent'] = send_order_email($db, $message[0], $message[1], $message[2]);
+        }
+        return $result;
+    } catch (Throwable $error) {
+        $db->rollback();
+        unset($GLOBALS['order_mail_queue']);
+        return array('errors' => array('The order could not be saved. Nothing was changed; please reload and try again.'), 'changed' => false, 'mail_sent' => null);
+    }
+}
+
+function cancel_order($db, $order_id, $reason, $snapshot = null) { return atomic_order_action($db, $order_id, 'cancel_order_locked', $reason, $snapshot); }
+function confirm_order($db, $order_id) { return atomic_order_action($db, $order_id, 'confirm_order_locked'); }
+function save_order_changes($db, $order_id, $form) { return atomic_order_action($db, $order_id, 'save_order_changes_locked', $form, $form['order_snapshot'] ?? ''); }
+function save_and_confirm_order($db, $order_id, $form) { return atomic_order_action($db, $order_id, 'save_and_confirm_order_locked', $form, $form['order_snapshot'] ?? ''); }
+
+function save_and_confirm_order_locked($db, $order_id, $form) {
+    $saved = save_order_changes_locked($db, $order_id, $form);
+    if (count($saved['errors']) > 0) return $saved;
+    $result = $db->query("SELECT status FROM orders WHERE id = " . (int) $order_id);
+    $order = $result ? $result->fetch_assoc() : false;
+    if (!$order) throw new Exception('The order could not be read.');
+    if ($order['status'] == 'Cancelled') return $saved;
+    return confirm_order_locked($db, $order_id);
+}
 
 // Release only extra reservations which this request actually made.
 function restore_order_reservations($db, $reserved) {
@@ -107,7 +166,7 @@ function recover_order_changes(
 }
 
 // A repeated cancellation changes no row, so it cannot restore the stock twice.
-function cancel_order($db, $order_id, $reason) {
+function cancel_order_locked($db, $order_id, $reason) {
     $order_id = (int) $order_id;
     $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
     $result = $db->query(
@@ -222,7 +281,7 @@ function cancel_order($db, $order_id, $reason) {
     );
 }
 
-function confirm_order($db, $order_id) {
+function confirm_order_locked($db, $order_id) {
     $order_id = (int) $order_id;
     $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
@@ -263,7 +322,7 @@ function confirm_order($db, $order_id) {
 }
 
 // Returns errors and whether a complete, actual change was saved. Mail is sent by order.php.
-function save_order_changes($db, $order_id, $form) {
+function save_order_changes_locked($db, $order_id, $form) {
     $errors = array();
     $order_id = (int) $order_id;
     $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
@@ -283,6 +342,22 @@ function save_order_changes($db, $order_id, $form) {
         );
     }
 
+    if (isset($form['remove_item_id'])) {
+        $remove_id = (string) $form['remove_item_id'];
+        if (!valid_id($remove_id)) return array('errors' => array('Please choose a valid item to remove.'), 'changed' => false);
+        $stored = $db->query("SELECT * FROM order_items WHERE order_id = $order_id");
+        if (!$stored) return array('errors' => array('The order could not be read.'), 'changed' => false);
+        $form = array('phone' => $order['phone'], 'address' => $order['address'], 'postal_code' => $order['postal_code'],
+            'remove' => array((int) $remove_id => '1'), 'size' => array(), 'quantity' => array());
+        $found = false;
+        while ($line = $stored->fetch_assoc()) {
+            $form['size'][$line['id']] = (string) $line['size_id'];
+            $form['quantity'][$line['id']] = (string) $line['quantity'];
+            if ($line['id'] == $remove_id) $found = true;
+        }
+        if (!$found) return array('errors' => array('That item is not in this order.'), 'changed' => false);
+    }
+
     $phone = isset($form['phone']) ? $form['phone'] : '';
     $address = isset($form['address']) ? $form['address'] : '';
     $postal_code = isset($form['postal_code']) ? $form['postal_code'] : '';
@@ -291,7 +366,7 @@ function save_order_changes($db, $order_id, $form) {
         $errors[] = 'Please enter an 8-digit Singapore phone number starting with 6, 8 or 9.';
     }
 
-    if (trim($address) == '' || strlen($address) > 255) {
+    if (trim($address) == '' || text_length($address) > 255) {
         $errors[] = 'Please enter a delivery address of up to 255 characters.';
     }
 

@@ -19,12 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $postal_code = isset($_POST['postal_code']) ? $_POST['postal_code'] : '';
 
     if (!is_valid_name($name)) {
-        $error = 'Please enter a name using letters and spaces, up to 100 characters.';
+        $error = 'Please enter a name using letters, spaces, apostrophes or hyphens, up to 100 characters.';
     } elseif ($phone != '' && !is_valid_phone($phone)) {
         $error = 'Please enter an 8-digit Singapore phone number, or leave it blank.';
     } elseif ($postal_code != '' && !is_valid_postal_code($postal_code)) {
         $error = 'Please enter a 6-digit postal code, or leave it blank.';
-    } elseif (strlen($address) > 255) {
+    } elseif (text_length($address) > 255) {
         $error = 'Please keep your address within 255 characters.';
     } else {
         $safe_name = $db->real_escape_string($name);
@@ -46,15 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 $orders = $db->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY id DESC");
 
-$page_title = 'My account';
+$page_title = 'My Account';
 include 'includes/header.php';
 ?>
 
 <div class="page-intro">
     <div>
         <p class="eyebrow">MY RESTEP</p>
-        <h1>My account</h1>
-        <p>Hello, <?php echo e($user['name']); ?>. <a class="text-link" href="logout.php">Sign out</a></p>
+        <h1>My Account</h1>
+        <div class="account-greeting"><span>Hello, <?php echo e($user['name']); ?>.</span> <form class="inline-form" action="logout.php" method="post"><?php echo csrf_field(); ?><button class="link-button" type="submit">Sign Out</button></form></div>
         <p>Review your orders and keep your delivery details up to date.</p>
     </div>
     <img src="assets/images/003_sports_marathon-racing_coral-and-cream.jpg"
@@ -62,10 +62,10 @@ include 'includes/header.php';
 </div>
 
 <div class="panel" id="orders">
-    <h2>My orders</h2>
+    <h2>My Orders</h2>
     <?php if ($orders->num_rows == 0) { ?>
         <p>You have not placed any orders yet.</p>
-        <a class="button" href="products.php">Start shopping</a>
+        <a class="button" href="products.php">Start Shopping</a>
     <?php } else { ?>
         <div class="table-scroll" tabindex="0" role="region" aria-label="Your order history">
             <table class="account-orders">
@@ -107,24 +107,25 @@ include 'includes/header.php';
 </div>
 
 <div class="panel">
-    <h2>My details</h2>
+    <h2>My Details</h2>
     <p class="hint">These are filled in for you at checkout.</p>
     <?php if ($error != '') { ?>
         <p class="error"><?php echo e($error); ?></p>
     <?php } ?>
     <form id="account-form" action="account.php" method="post">
+        <?php echo csrf_field(); ?>
         <label for="account-email">Email (used to sign in)</label>
         <input type="email" id="account-email" value="<?php echo e($user['email']); ?>" disabled>
 
         <label for="account-name">Name</label>
-        <input type="text" id="account-name" name="name" value="<?php echo e($name); ?>" maxlength="100" required>
+        <input type="text" id="account-name" name="name" value="<?php echo e($name); ?>" maxlength="200" required>
 
         <label for="account-phone">Mobile number</label>
         <input type="tel" id="account-phone" name="phone" value="<?php echo e($phone); ?>"
                maxlength="8" pattern="[689][0-9]{7}">
 
         <label for="account-address">Address</label>
-        <input type="text" id="account-address" name="address" value="<?php echo e($address); ?>" maxlength="255">
+        <input type="text" id="account-address" name="address" value="<?php echo e($address); ?>" maxlength="510">
 
         <label for="account-postal">Postal code</label>
         <input type="text" id="account-postal" name="postal_code" value="<?php echo e($postal_code); ?>"

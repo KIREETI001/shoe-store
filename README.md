@@ -12,10 +12,9 @@ A web portal for buying sport and lifestyle shoes, built with HTML, CSS, JavaScr
 4. Check `config.php` and your private `config.local.php` override. The current setup
    uses MySQL on port **3306** and Apache on port **8000**.
 5. Open http://localhost:8000/IE4727/shoe-store/ and create an account.
-6. For Admin access, register the team's own `f31ee@localhost` and
-   `f32ee@localhost` accounts, signing out between registrations. In phpMyAdmin,
-   run only the final `UPDATE` under **SECTION 2** of `database/schema.sql` after
-   confirming the accounts belong to the team. Refresh the site to see Admin.
+6. Use `f31ee@localhost` as the sole administrator/sender and `f32ee@localhost`
+   as the customer test account. For a fresh setup, register both, then run the
+   role updates under **SECTION 2** of `database/schema.sql`. Only f31ee receives Admin access.
 
 The `is_admin` column is included in the table definitions. No separate upgrade
 or grant file is needed for future fresh setups. An installation that already
@@ -33,12 +32,9 @@ $db_host = '127.0.0.1';
 $db_port = 3306;
 $db_name = 'restep';
 
-$allowed_mail_recipients = array(
-    'f31ee@localhost',
-    'f32ee@localhost'
-);
-
-$shop_email = '';
+$allowed_mail_recipients = array('f32ee@localhost');
+$admin_emails = array('f31ee@localhost');
+$shop_email = 'f31ee@localhost';
 ?>
 ```
 
@@ -48,20 +44,22 @@ do not re-import them over existing orders to prepare a test.
 
 ## Local order mail
 
-The team confirmed **f31ee@localhost** and **f32ee@localhost** as its two permitted
-Mercury accounts. Only these exact recipients may receive an order email. Another
-`@localhost` account and every external address are rejected before `mail()`.
+The sole sender/admin is **f31ee@localhost**. The sole test customer and allowed
+recipient is **f32ee@localhost**. Other recipients are rejected before `mail()`.
+The sender must be explicitly configured and match the sole configured admin;
+there is no fallback that sends an email from the customer to themselves.
 
-Register using the appropriate confirmed account to receive the acknowledgement
-in Thunderbird. Checkout always uses the saved account email and ignores any
-posted replacement. Other valid account addresses can use the site but cannot
-receive order mail.
+Checkout uses the signed-in account email and ignores posted replacements.
+An empty `$allowed_mail_recipients` array disables mail. A successful `mail()`
+return establishes SMTP acceptance; receipt must also be checked in Mercury and
+Thunderbird. Order pages report mail failure separately from a successful action.
 
-An empty `$allowed_mail_recipients` array disables mail. A blank `$shop_email` uses
-the matched permitted recipient as the sender; a configured sender must also be
-a local address. A successful `mail()` return means the mail server accepted the
-message, not that the inbox received it. The order pages report mail failure
-separately from a successful order action.
+Verified on 1 November 2026: seven test messages for orders #5 (Delivered) and #6
+(Cancelled) reached f32ee's Mercury mailbox and Thunderbird Inbox, all from f31ee.
+Covered received, updated, confirmed, shipped, delivered, and cancelled events.
+The two test orders remain available so the email links still work. Access tests
+covered guest redirects, customer/admin separation, ownership checks, CSRF,
+forged role/recipient inputs, and rejection of deleted-account sessions.
 
 ## Pages
 

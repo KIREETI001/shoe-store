@@ -6,7 +6,7 @@ require_once 'includes/functions.php';
 require_once 'includes/order-actions.php';
 require_valid_request(array('size', 'quantity', 'remove'));
 
-$order_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$order_id = valid_id(get_value('id')) ? (int) get_value('id') : 0;
 require_login('order.php?id=' . $order_id);
 $user_id = (int) $_SESSION['user_id'];
 
@@ -20,11 +20,12 @@ $result = $db->query(
 $order = $result ? $result->fetch_assoc() : false;
 
 if (!$order) {
-    $page_title = 'Order not found';
-    $heading = 'We could not find that order.';
+    http_response_code(404);
+    $page_title = 'Order Not Found';
+    $heading = 'We Could Not Find That Order.';
     $text = 'Make sure you are signed in with the account you used to order.';
     $link = 'account.php#orders';
-    $link_text = 'See my orders';
+    $link_text = 'See My Orders';
     include 'includes/not-found.php';
     exit;
 }
@@ -58,7 +59,7 @@ if (isset($_POST['remove_item_id'])) {
 // Handle the buttons. Only a Pending order can be changed.
 if ($order['status'] == 'Pending') {
     if ($action == 'cancel') {
-        $result = cancel_order($db, $order_id, 'Your order has been cancelled as requested.');
+        $result = cancel_order($db, $order_id, 'Your order has been cancelled as requested.', post_value('order_snapshot'));
         $errors = $result['errors'];
 
         if (count($errors) == 0) {
@@ -78,7 +79,10 @@ if ($order['status'] == 'Pending') {
     }
 
     if (($action == 'save' || $action == 'confirm') && count($errors) == 0) {
-        $result = save_order_changes($db, $order_id, $_POST);
+        $result = $action == 'confirm'
+            ? save_and_confirm_order($db, $order_id, $_POST)
+            : save_order_changes($db, $order_id, $_POST);
+        $confirmation = $result;
         $errors = $result['errors'];
         $changed = $result['changed'];
 
@@ -109,7 +113,7 @@ if ($order['status'] == 'Pending') {
                     'You removed every item, so your demonstration order has been cancelled. No real payment is taken.'
                 );
             } elseif ($action == 'confirm') {
-                $result = confirm_order($db, $order_id);
+                $result = $confirmation;
                 $errors = $result['errors'];
                 $mail_sent = $result['mail_sent'];
                 $message = $result['changed']
@@ -160,6 +164,13 @@ if (count($errors) > 0) {
     }
 }
 
+// Render the saved header, items and snapshot from the same locked state.
+$render_transaction = $db->begin_transaction();
+if ($render_transaction) {
+    $latest = $db->query("SELECT * FROM orders WHERE id = $order_id AND user_id = $user_id FOR UPDATE");
+    if ($latest && ($row = $latest->fetch_assoc())) $order = $row;
+}
+
 $items = $db->query(
     "SELECT oi.*, p.image, p.colour
      FROM order_items oi
@@ -192,11 +203,18 @@ if (!$items || !$held_result) {
     $can_edit = false;
 }
 
+$preserve_input = $_SERVER['REQUEST_METHOD'] == 'POST' && count($errors) > 0 && $can_edit && !isset($_POST['remove_item_id']);
+if ($preserve_input) {
+    foreach (array('phone', 'address', 'postal_code') as $field) $order[$field] = post_value($field, $order[$field]);
+}
+
+$form_snapshot = $preserve_input ? post_value('order_snapshot') : order_snapshot($db, $order_id);
+if ($render_transaction) $db->commit();
 $page_title = 'Order #' . $order_id;
 include 'includes/header.php';
 ?>
 
-<p class="breadcrumb"><a href="account.php#orders">My orders</a> / Order #<?php echo $order_id; ?></p>
+<p class="breadcrumb"><a href="account.php#orders">My Orders</a> / Order #<?php echo $order_id; ?></p>
 <h1>
     Order #<?php echo $order_id; ?>
     <span class="status status-<?php echo strtolower($order['status']); ?>"><?php echo e($order['status']); ?></span>
@@ -204,6 +222,7 @@ include 'includes/header.php';
 <p class="hint">Placed on <?php echo date('j M Y, g:i a', strtotime($order['created_at'])); ?></p>
 
 <?php if ($can_edit) { ?>
+    <p class="hint">Pending orders reserve stock for 30 minutes from placement. Confirm before then to keep your reservation.</p>
     <p class="steps">
         <span>1. Bag</span> &rarr; <span>2. Delivery &amp; payment</span>
         &rarr; <strong>3. Check your order</strong>
@@ -226,6 +245,7 @@ include 'includes/header.php';
 
 <?php if (count($errors) > 0) { ?>
     <div class="error">
+        <p><a class="text-link" href="order.php?id=<?php echo $order_id; ?>">Reload Latest Order</a></p>
         <ul>
             <?php foreach ($errors as $error) { ?>
                 <li><?php echo e($error); ?></li>
@@ -235,6 +255,9 @@ include 'includes/header.php';
 <?php } ?>
 
 <form id="order-form" action="order.php?id=<?php echo $order_id; ?>" method="post">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="order_snapshot" value="<?php echo e($form_snapshot); ?>">
+    <button class="implicit-submit" type="submit" name="action" value="save" tabindex="-1" aria-hidden="true">Save Changes</button>
     <div class="order-items">
         <table class="order-items-table">
             <thead>
@@ -250,7 +273,10 @@ include 'includes/header.php';
                 </tr>
             </thead>
             <tbody>
-                <?php while ($items && ($item = $items->fetch_assoc())) { ?>
+                <?php while ($items && ($item = $items->fetch_assoc())) {
+                    $display_size = $preserve_input && isset($_POST['size'][$item['id']]) ? $_POST['size'][$item['id']] : $item['size_id'];
+                    $display_quantity = $preserve_input && isset($_POST['quantity'][$item['id']]) ? $_POST['quantity'][$item['id']] : $item['quantity'];
+                ?>
                     <tr>
                         <td>
                             <div class="order-product">
@@ -273,8 +299,8 @@ include 'includes/header.php';
                                         $available = $s['stock']
                                             + (isset($held_by_size[$s['id']]) ? $held_by_size[$s['id']] : 0);
                                         ?>
-                                        <option value="<?php echo $s['id']; ?>"
-                                            <?php if ($s['id'] == $item['size_id']) echo 'selected'; ?>
+                                        <option value="<?php echo $s['id']; ?>" data-stock="<?php echo (int) $available; ?>"
+                                            <?php if ($s['id'] == $display_size) echo 'selected'; ?>
                                             <?php if ($available < 1) echo 'disabled'; ?>>
                                             <?php echo $s['size']; ?><?php if ($available < 1) echo ' (sold out)'; ?>
                                         </option>
@@ -287,7 +313,7 @@ include 'includes/header.php';
                         <td class="order-quantity-cell">
                             <?php if ($can_edit) { ?>
                                 <input id="order-quantity-<?php echo $item['id']; ?>" class="qty" type="number"
-                                    name="quantity[<?php echo $item['id']; ?>]" value="<?php echo $item['quantity']; ?>"
+                                    name="quantity[<?php echo $item['id']; ?>]" value="<?php echo e($display_quantity); ?>"
                                     min="1" max="10" step="1" required
                                     aria-label="Quantity for <?php echo e($item['product_name']); ?>">
                             <?php } else { ?>
@@ -315,7 +341,7 @@ include 'includes/header.php';
 
     <div class="cart-layout">
         <fieldset>
-            <legend>Delivery details</legend>
+            <legend>Delivery Details</legend>
             <p><?php echo e($order['name']); ?><br><?php echo e($order['email']); ?></p>
             <?php if ($can_edit) { ?>
                 <label for="phone">Mobile number</label>
@@ -323,7 +349,7 @@ include 'includes/header.php';
                     maxlength="8" pattern="[689][0-9]{7}" required>
                 <label for="address">Address</label>
                 <input type="text" id="address" name="address" value="<?php echo e($order['address']); ?>"
-                    maxlength="255" required>
+                    maxlength="510" required>
                 <label for="postal_code">Postal code</label>
                 <input type="text" id="postal_code" name="postal_code" value="<?php echo e($order['postal_code']); ?>"
                     maxlength="6" pattern="[0-9]{6}" required>
@@ -355,11 +381,13 @@ include 'includes/header.php';
 <?php if ($can_edit) { ?>
     <form action="order.php?id=<?php echo $order_id; ?>" method="post"
         onsubmit="return confirm('Cancel this whole order?');">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="order_snapshot" value="<?php echo e($form_snapshot); ?>">
         <input type="hidden" name="action" value="cancel">
         <button class="link-button" type="submit">Cancel this order</button>
     </form>
 <?php } ?>
 
-<p><a class="text-link" href="products.php">Continue shopping</a></p>
+<p><a class="text-link" href="products.php">Continue Shopping</a></p>
 
 <?php include 'includes/footer.php'; ?>

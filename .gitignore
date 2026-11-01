@@ -2,3 +2,8 @@ config.local.php
 *.log
 docs/CODEX_HANDOVER.md
 
+/docs/superpowers/plans/2026-11-01-filters-help-validation.md
+/tests/validation.test.cjs
+/tests/popular_test.py
+/tests/order-actions.test.php
+

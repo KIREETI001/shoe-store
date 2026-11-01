@@ -4,12 +4,13 @@ require_login('admin.php');
 require_valid_request();
 
 if (!is_admin_user($db)) {
-    $page_title = 'Admin access';
+    http_response_code(403);
+    $page_title = 'Admin Access';
     include 'includes/header.php';
     ?>
-    <h1>Admin access</h1>
+    <h1>Admin Access</h1>
     <p>This page is available only to the configured shop administrators.</p>
-    <p><a class="text-link" href="account.php">Return to my account</a></p>
+    <p><a class="text-link" href="account.php">Return To My Account</a></p>
     <?php
     include 'includes/footer.php';
     exit;
@@ -49,23 +50,24 @@ if ($order_id > 0) {
 }
 
 if ($read_error != '') {
-    $page_title = 'Order details';
+    $page_title = 'Order Details';
     include 'includes/header.php';
     ?>
-    <h1>Order details</h1>
+    <h1>Order Details</h1>
     <p class="error"><?php echo e($read_error); ?></p>
-    <p><a class="text-link" href="admin.php#fulfilment">Return to order fulfilment</a></p>
+    <p><a class="text-link" href="admin.php#fulfilment">Return To Order Fulfilment</a></p>
     <?php
     include 'includes/footer.php';
     exit;
 }
 
 if (!$order) {
-    $page_title = 'Order not found';
-    $heading = 'We could not find that order.';
+    http_response_code(404);
+    $page_title = 'Order Not Found';
+    $heading = 'We Could Not Find That Order.';
     $text = 'Return to order fulfilment and choose an order number from the list.';
     $link = 'admin.php#fulfilment';
-    $link_text = 'Return to order fulfilment';
+    $link_text = 'Return To Order Fulfilment';
     include 'includes/not-found.php';
     exit;
 }
@@ -75,10 +77,10 @@ include 'includes/header.php';
 ?>
 
 <h1>Order #<?php echo $order['id']; ?></h1>
-<p><a class="text-link" href="admin.php#fulfilment">Return to order fulfilment</a></p>
+<p><a class="text-link" href="admin.php#fulfilment">Return To Order Fulfilment</a></p>
 
 <section class="panel admin-section">
-    <h2>Order details</h2>
+    <h2>Order Details</h2>
     <p><strong>Customer:</strong> <?php echo e($order['name']); ?></p>
     <p><strong>Status:</strong> <?php echo e($order['status']); ?></p>
     <p><strong>Placed:</strong> <?php echo e($order['created_at']); ?></p>

@@ -1,7 +1,7 @@
 -- ReStep database setup: tables and administrator permissions.
 -- 1. In phpMyAdmin, create an EMPTY database called restep and select it.
 -- 2. Import this file, then import the separate, unchanged seed.sql.
--- 3. Register the team's own f31ee@localhost and f32ee@localhost accounts
+-- 3. Register f31ee@localhost (admin) and f32ee@localhost (test customer)
 --    through the website. Sign out between registrations.
 -- 4. Return to phpMyAdmin and run ONLY the UPDATE in SECTION 2 below.
 --    Accounts must exist before that statement can grant Admin access.
@@ -91,4 +91,6 @@ CREATE TABLE enquiries (
 -- Admin also checks the separate admin_emails list in config.php.
 UPDATE users
 SET is_admin = 1
-WHERE email IN ('f31ee@localhost', 'f32ee@localhost');
+WHERE email = 'f31ee@localhost';
+
+UPDATE users SET is_admin = 0 WHERE email <> 'f31ee@localhost';
