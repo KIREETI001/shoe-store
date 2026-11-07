@@ -68,11 +68,13 @@ function is_valid_name($value) {
 function is_valid_email($value) {
     if (is_array_value($value) || strlen($value) > 150) return false;
     $pattern = <<<'EMAIL'
-/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~\-]+@(?:localhost|(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/D
+/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~\-]+@(?:localhost|(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/iD
 EMAIL;
-    $local = explode('@', $value)[0];
-    return preg_match($pattern, $value) == 1 && $local !== ''
-        && $local[0] != '.' && substr($local, -1) != '.' && strpos($local, '..') === false;
+    if (preg_match($pattern, $value) != 1) return false;
+    list($local, $domain) = explode('@', $value);
+    if (strlen($local) > 64 || $local[0] == '.' || substr($local, -1) == '.' || strpos($local, '..') !== false) return false;
+    $domain = strtolower($domain);
+    return in_array($domain, array('gmail.com', 'outlook.com', 'localhost'), true);
 }
 
 function valid_id($value) {

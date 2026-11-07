@@ -61,6 +61,37 @@ include 'includes/header.php';
          alt="Coral and cream ReStep Tempo running shoe" width="220" height="220">
 </div>
 
+<div class="panel">
+    <h2>My Details</h2>
+    <p class="hint">These are filled in for you at checkout.</p>
+    <?php if ($error != '') { ?>
+        <p class="error"><?php echo e($error); ?></p>
+    <?php } ?>
+    <form id="account-form" action="account.php" method="post">
+        <?php echo csrf_field(); ?>
+        <label for="account-email">Email (used to sign in)</label>
+        <input type="email" id="account-email" value="<?php echo e($user['email']); ?>" disabled>
+
+        <label for="account-name">Name</label>
+        <input type="text" id="account-name" name="name" value="<?php echo e($name); ?>" maxlength="200" required>
+
+        <label for="account-phone">Mobile number</label>
+        <input type="tel" id="account-phone" name="phone" value="<?php echo e($phone); ?>"
+               maxlength="8" pattern="[689][0-9]{7}">
+
+        <label for="account-address">Address</label>
+        <input type="text" id="account-address" name="address" value="<?php echo e($address); ?>" maxlength="510">
+
+        <label for="account-postal">Postal code</label>
+        <input type="text" id="account-postal" name="postal_code" value="<?php echo e($postal_code); ?>"
+               maxlength="6" pattern="[0-9]{6}">
+
+        <p id="account-error" class="error-text"></p>
+        <button class="button" type="submit">Save details</button>
+    </form>
+</div>
+
+
 <div class="panel" id="orders">
     <h2>My Orders</h2>
     <?php if ($orders->num_rows == 0) { ?>
@@ -104,36 +135,6 @@ include 'includes/header.php';
             </table>
         </div>
     <?php } ?>
-</div>
-
-<div class="panel">
-    <h2>My Details</h2>
-    <p class="hint">These are filled in for you at checkout.</p>
-    <?php if ($error != '') { ?>
-        <p class="error"><?php echo e($error); ?></p>
-    <?php } ?>
-    <form id="account-form" action="account.php" method="post">
-        <?php echo csrf_field(); ?>
-        <label for="account-email">Email (used to sign in)</label>
-        <input type="email" id="account-email" value="<?php echo e($user['email']); ?>" disabled>
-
-        <label for="account-name">Name</label>
-        <input type="text" id="account-name" name="name" value="<?php echo e($name); ?>" maxlength="200" required>
-
-        <label for="account-phone">Mobile number</label>
-        <input type="tel" id="account-phone" name="phone" value="<?php echo e($phone); ?>"
-               maxlength="8" pattern="[689][0-9]{7}">
-
-        <label for="account-address">Address</label>
-        <input type="text" id="account-address" name="address" value="<?php echo e($address); ?>" maxlength="510">
-
-        <label for="account-postal">Postal code</label>
-        <input type="text" id="account-postal" name="postal_code" value="<?php echo e($postal_code); ?>"
-               maxlength="6" pattern="[0-9]{6}">
-
-        <p id="account-error" class="error-text"></p>
-        <button class="button" type="submit">Save details</button>
-    </form>
 </div>
 
 <?php include 'includes/footer.php'; ?>

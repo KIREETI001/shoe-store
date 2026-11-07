@@ -16,7 +16,7 @@ $db_port = 3306;
 
 // Test mail goes only to the customer mailbox; the admin is the sender.
 // Only these exact recipients may receive order mail. An empty array disables it.
-$allowed_mail_recipients = array('f32ee@localhost');
+$allowed_mail_recipients = array('f32ee@localhost', 'f31ee@localhost');
 
 // One explicit admin sender; blank or unapproved senders disable sending.
 $shop_email = 'f31ee@localhost';

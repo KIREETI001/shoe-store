@@ -11,10 +11,15 @@ function isValidName(value) {
     return textLength(value) <= 100 && /\p{L}/u.test(value) && !/[^\p{L}\p{M} '\u2019\-]/u.test(value);
 }
 
+// Only the three configured email domains are accepted.
 function isValidEmail(value) {
     value = value.trim();
-    return value.length <= 150 && /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~\-]+@(?:localhost|(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/.test(value)
-        && !value.split('@')[0].startsWith('.') && !value.split('@')[0].endsWith('.') && !value.split('@')[0].includes('..');
+    if (value.length > 150 || !/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~\-]+@(?:localhost|(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/i.test(value)) return false;
+    var parts = value.split("@");
+    var local = parts[0];
+    var domain = parts[1].toLowerCase();
+    if (local.length > 64 || local.startsWith(".") || local.endsWith(".") || local.includes("..")) return false;
+    return ["gmail.com", "outlook.com", "localhost"].indexOf(domain) != -1;
 }
 
 function isValidPhone(value) {
@@ -57,7 +62,7 @@ function checkNameField(id, errorId) {
 function checkEmailField(id, errorId) {
     var email = document.getElementById(id);
     if (!isValidEmail(email.value)) {
-        showError(errorId, "Please enter a valid email address, up to 150 characters.");
+        showError(errorId, "Enter a valid email using gmail.com, outlook.com or localhost (maximum 150 characters).");
         email.focus();
         return false;
     }
@@ -324,7 +329,7 @@ function getFieldError(field) {
             ? "" : "Please choose an available option from the list.";
     }
     if (name == "name") return isValidName(value) ? "" : "Use letters and spaces, apostrophes or hyphens, up to 100 characters (e.g. Alex Tan).";
-    if (field.type == "email") return isValidEmail(value) ? "" : "Enter a valid email, up to 150 characters (e.g. alex@example.com or f31ee@localhost).";
+    if (field.type == "email") return isValidEmail(value) ? "" : "Enter a valid email using gmail.com, outlook.com or localhost (maximum 150 characters).";
     if (name == "phone") return isValidPhone(value) ? "" : "Enter exactly 8 digits beginning with 6, 8 or 9 (e.g. 91234567).";
     if (name == "postal_code") return isValidPostalCode(value) ? "" : "Enter exactly 6 digits (e.g. 639798).";
     if (name == "address") return /\S/.test(value) && textLength(value) <= 255 ? "" : "Enter an address, up to 255 characters (e.g. block, street and unit number).";
@@ -475,6 +480,8 @@ for (var fieldIndex = 0; fieldIndex < editableFields.length; fieldIndex++) {
             refreshDependentFields(this);
         });
     });
+    // Show feedback for an email retained after a server response, before another submit.
+    if (field.type == "email" && field.value != "") validateField(field);
     if (field.tagName == "SELECT" && /^size\[/.test(field.name)) refreshDependentFields(field);
 }
 

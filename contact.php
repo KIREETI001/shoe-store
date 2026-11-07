@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!is_valid_name($name)) {
         $error = 'Please enter a name using letters, spaces, apostrophes or hyphens, up to 100 characters.';
     } elseif (!is_valid_email($email)) {
-        $error = 'Please enter a valid email address, up to 150 characters.';
+        $error = 'Enter a valid email using gmail.com, outlook.com or localhost (maximum 150 characters).';
     } elseif (!$valid_topic) {
         $error = 'Please choose a listed topic.';
     } elseif (preg_match('/\S/', $message) != 1 || text_length($message) > 5000) {
@@ -56,12 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST' && isset($_SESSION['user_id'])) {
     $email = $user['email'];
 }
 
-$page_title = 'HELP';
+$page_title = 'Help';
 include 'includes/header.php';
 ?>
 
 <div class="help-page">
-<h1>HELP</h1>
+<h1>Help</h1>
 <p>Questions about sizes, an order or anything else? Send us a message.</p>
 
 <section class="faq section" id="help">

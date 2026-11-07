@@ -24,7 +24,7 @@ if ($action == 'login') {
     $password = isset($_POST['password']) ? $_POST['password'] : '';
 
     if (!is_valid_email($login_email)) {
-        $login_error = 'Please enter a valid email address, up to 150 characters.';
+        $login_error = 'Enter a valid email using gmail.com, outlook.com or localhost (maximum 150 characters).';
     } elseif ($password == '' || text_length($password) > 72) {
         $login_error = 'Please enter your password, up to 72 characters.';
     } else {
@@ -55,7 +55,7 @@ if ($action == 'register') {
     if (!is_valid_name($reg_name)) {
         $reg_error = 'Please enter a name using letters, spaces, apostrophes or hyphens, up to 100 characters.';
     } elseif (!is_valid_email($reg_email)) {
-        $reg_error = 'Please enter a valid email address, up to 150 characters.';
+        $reg_error = 'Enter a valid email using gmail.com, outlook.com or localhost (maximum 150 characters).';
     } elseif (text_length($password) < 8 || text_length($password) > 72) {
         $reg_error = 'Your password needs 8 to 72 characters.';
     } elseif ($password != $confirm) {
